@@ -1,0 +1,42 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity$PlaceholderFragment"
+    android:background="@color/app_background">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:paddingTop="1dp">
+
+        <ListView
+            android:layout_width="fill_parent"
+            android:layout_height="200dp"
+            android:id="@+id/message_list"
+            android:layout_centerHorizontal="true"
+            android:choiceMode="singleChoice"
+            tools:listitem="@layout/fragment_overview_message_list_item" />
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="30dp" />
+
+        <ListView
+            android:layout_width="fill_parent"
+            android:layout_height="250dp"
+            android:id="@+id/transition_list"
+            android:layout_centerHorizontal="true"
+            android:choiceMode="singleChoice"
+            tools:listitem="@layout/fragment_overview_message_list_item" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:id="@+id/btnClear"
+            android:text="Clear"
+            android:layout_gravity="right"/>
+    </LinearLayout>
+
+</RelativeLayout>

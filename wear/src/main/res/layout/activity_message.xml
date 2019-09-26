@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.wearable.view.BoxInsetLayout
+    android:id="@+id/container"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.better_computer.habitaid.ActivityMessage"
+    tools:deviceIds="wear">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:orientation="vertical"
+        app:layout_box="all">
+
+            <TextView
+                android:id="@+id/text1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No Data"
+                android:layout_marginLeft="12dp"
+                android:layout_marginTop="10dp"
+                />
+
+            <TextView
+                android:id="@+id/text2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No Data"
+                android:layout_marginLeft="12dp"
+                android:layout_marginTop="10dp"
+                />
+        </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:orientation="horizontal"
+        app:layout_box="all">
+
+        <Button
+            android:layout_width="65dp"
+            android:layout_height="50dp"
+            android:id="@+id/btnCycl"
+            android:text="cycl"
+            android:textAllCaps="false"
+            android:visibility="gone"
+            />
+
+        <Button
+            android:layout_width="65dp"
+            android:layout_height="50dp"
+            android:id="@+id/btnPost"
+            android:text="post"
+            android:textAllCaps="false"
+            android:visibility="gone"
+            />
+
+        <Button
+            android:layout_width="65dp"
+            android:layout_height="50dp"
+            android:id="@+id/btnCncl"
+            android:text="cncl"
+            android:textAllCaps="false"
+            android:visibility="gone"
+            />
+
+        <Button
+            android:layout_width="65dp"
+            android:layout_height="50dp"
+            android:id="@+id/btnRst"
+            android:text="rst"
+            android:textAllCaps="false"
+            android:visibility="gone"
+            />
+
+        <Button
+            android:layout_width="65dp"
+            android:layout_height="50dp"
+            android:id="@+id/btnAck1"
+            android:text="1"
+            android:textAllCaps="false"
+            android:visibility="gone"
+            />
+
+        <Button
+            android:layout_width="65dp"
+            android:layout_height="50dp"
+            android:id="@+id/btnAck2"
+            android:text="2"
+            android:textAllCaps="false"
+            android:visibility="gone"
+            />
+
+    </LinearLayout>
+    </android.support.wearable.view.BoxInsetLayout>

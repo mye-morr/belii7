@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">habitaid</string>
+
+    <style name="HomeTheme" parent="@android:style/Theme.DeviceDefault">
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+
+
+    <style name="AppTheme" parent="@android:style/Theme.DeviceDefault">
+        <item name="android:windowSwipeToDismiss">false</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+
+    <string name="title_activity_two_lists">ActivityTwoLists</string>
+    <string name="hello_round">Hello Round World!</string>
+    <string name="hello_square">Hello Square World!</string>
+    <string name="title_activity_activity2_lists">Activity2Lists</string>
+    <string name="title_activity_input_task">ActivityInputTask</string>
+
+</resources>

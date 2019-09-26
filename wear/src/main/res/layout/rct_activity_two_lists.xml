@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.wearable.view.BoxInsetLayout
+    android:id="@+id/container"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.better_computer.habitaid.ActivityTwoLists"
+    tools:deviceIds="wear">
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        tools:deviceIds="wear_square"
+        android:weightSum="1">
+
+        <ListView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/list_left"
+            android:choiceMode="singleChoice"
+            android:layout_weight="0.5"/>
+
+        <ListView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/list_times"
+            android:choiceMode="singleChoice"
+            android:layout_weight="0.5"
+            android:visibility="gone"/>
+
+        <ListView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/list_right"
+            android:choiceMode="singleChoice"
+            android:layout_weight="0.5"/>
+
+    </LinearLayout>
+</android.support.wearable.view.BoxInsetLayout>
