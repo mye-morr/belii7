@@ -2,9 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.better_computer.habitaid">
 
-    <uses-sdk
-        android:minSdkVersion="19"
-        android:targetSdkVersion="23" />
+    <uses-sdk android:targetSdkVersion="23" />
     <!-- USER PERMISSION -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.SEND_SMS" />
@@ -85,11 +83,6 @@
             android:name=".scheduler.AlarmReceiver"
             android:enabled="true"
             android:exported="true" />
-        <receiver android:name=".scheduler.ButtonsReceiver">
-            <intent-filter>
-                <action android:name="com.example.SendBroadcast.pressed_btn" />
-            </intent-filter>
-        </receiver>
 
         <service android:name=".service.PlayerService" />
         <service android:name=".service.PlayerServiceStatic" />

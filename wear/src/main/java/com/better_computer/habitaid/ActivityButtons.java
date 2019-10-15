@@ -4,20 +4,25 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.wearable.activity.WearableActivity;
 import android.support.wearable.view.BoxInsetLayout;
 import android.support.wearable.view.DismissOverlayView;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.style.RelativeSizeSpan;
+import android.text.style.SuperscriptSpan;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.Chronometer;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.better_computer.habitaid.share.MessageData;
 import com.better_computer.habitaid.share.PressedData;
 import com.better_computer.habitaid.share.WearMessage;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -25,6 +30,8 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+
+import static android.text.TextUtils.substring;
 
 public class ActivityButtons extends WearableActivity
 {
@@ -37,6 +44,8 @@ public class ActivityButtons extends WearableActivity
     private GestureDetector mGestureDetector;
     private GoogleApiClient mGoogleApiClient = null;
     private SharedPreferences prefs;
+
+    Chronometer mChronometer;
 
     private int mActiveFace;
 
@@ -52,11 +61,13 @@ public class ActivityButtons extends WearableActivity
     private Button btn3_2;
     private Button btn3_3;
     private Button btn3_4;
+
     private TextView tvTextLeft;
-    private Button btnUndo;
+    private TextView tvTextRight;
+    private Button btnCycl;
+    private Button btnRouti;
     private Button btnWork;
-    private Button btnOther;
-    private Button btnTransDoneCanc;
+    private Button btnDoneCanc;
 
     private String sCat;
     private String sDelimCaptions;
@@ -67,14 +78,14 @@ public class ActivityButtons extends WearableActivity
     private String[] sxPoints;
     private String sActiveFace;
 
+    private String sNewCycl;
+    private boolean bNewRouti;
     private boolean bNewWork;
     private boolean bNewTask;
-    private boolean bNewTrans;
     private boolean bImpuls;
+    private boolean bTimerTicking;
     private String sCurEvent;
     private String sType;
-
-    private boolean bShowPts = false;
 
     private PressedData pressedData;
     private Database db;
@@ -104,10 +115,25 @@ public class ActivityButtons extends WearableActivity
 
         pressedData = new PressedData();
         db = new Database(getApplicationContext());
+
+        if(myApp.bFirstLaunch) {
+            Calendar cNow = Calendar.getInstance();
+            StopwatchUtil.resetTransStartTime(contextOfApplication);
+            StopwatchUtil.setDateTransStarted(
+                    dateFormat.format(cNow.getTime()),
+                    dateTimeFormat.format(cNow.getTime()));
+            db.clearImp();
+
+            myApp.bFirstLaunch = false;
+        }
+
+        sNewCycl = myApp.sNewCycl;
+        bNewRouti = myApp.bNewRouti;
         bNewWork = myApp.bNewWork;
         bNewTask = myApp.bNewTask;
-        bNewTrans = myApp.bNewTrans;
+
         bImpuls = myApp.bImpuls;
+        bTimerTicking = myApp.bTimerTicking;
         sCurEvent = myApp.sCurEvent;
 
         mContainerView = (BoxInsetLayout) findViewById(R.id.container); // This is your existing top level RelativeLayout
@@ -187,6 +213,8 @@ public class ActivityButtons extends WearableActivity
             }
         });
 
+        mChronometer = (Chronometer) findViewById(R.id.chronometer);
+
         btn1_1 = (Button) findViewById(R.id.btn1_1);
         btn1_2 = (Button) findViewById(R.id.btn1_2);
         btn1_3 = (Button) findViewById(R.id.btn1_3);
@@ -201,24 +229,131 @@ public class ActivityButtons extends WearableActivity
         btn3_4 = (Button) findViewById(R.id.btn3_4);
 
         tvTextLeft = (TextView) findViewById(R.id.tvTextLeft);
+        tvTextRight = (TextView) findViewById(R.id.tvTextRight);
+        btnCycl = (Button) findViewById(R.id.btnCycl);
+        btnRouti = (Button) findViewById(R.id.btnRouti);
         btnWork = (Button) findViewById(R.id.btnWork);
-        btnOther = (Button) findViewById(R.id.btnOther);
-        btnTransDoneCanc = (Button) findViewById(R.id.btnTransDoneCanc);
-        btnUndo = (Button) findViewById(R.id.btnUndo);
+        btnDoneCanc = (Button) findViewById(R.id.btnDoneCanc);
 
-        if(bNewWork || bNewTask || bNewTrans) {
+        if(bNewRouti || bNewWork || bNewTask) {
+            btnCycl.setText("");
+            btnRouti.setText("");
             btnWork.setText("");
-            btnOther.setText("");
-            btnTransDoneCanc.setText("dn cn");
-
+            btnDoneCanc.setText("dn cn");
         }
         else {
+            btnCycl.setText(sNewCycl);
+            btnRouti.setText("routi");
             btnWork.setText("work");
-            btnOther.setText("other");
-            btnTransDoneCanc.setText("trans");
+            btnDoneCanc.setText("task");
         }
 
         recaption();
+
+        btnCycl.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                return true;
+            }
+        });
+
+        btnCycl.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // aka "done"
+
+                MyApplication myApp = ((MyApplication)getApplication());
+                if(bNewWork || bNewTask) {
+                    // don't process phantom clicks
+                }
+                else {
+                    sNewCycl = myApp.sNewCycl;
+
+                    Calendar cNow = Calendar.getInstance();
+                    long passedTime;
+                    long passedSecs;
+                    int iMinPassed;
+
+                    switch(sNewCycl) {
+                        case "offt":
+                            sNewCycl = "plng";
+                            myApp.sNewCycl = sNewCycl;
+                            btnCycl.setText(sNewCycl);
+
+                            passedTime = StopwatchUtil.getTransPassedTime(contextOfApplication);
+                            passedSecs = passedTime / 1000;
+                            iMinPassed = (int) Math.round(passedSecs / 60.0);
+                            db.doneEvent(
+                                    StopwatchUtil.getDateTransStarted(contextOfApplication),
+                                    "trans",
+                                    iMinPassed,
+                                    0,
+                                    StopwatchUtil.getDateTimeTransStarted(contextOfApplication),
+                                    timeFormat.format(cNow.getTime()));
+
+                            StopwatchUtil.resetTransStartTime(contextOfApplication);
+                            StopwatchUtil.setDateTransStarted(
+                                    dateFormat.format(cNow.getTime()),
+                                    dateTimeFormat.format(cNow.getTime()));
+                            break;
+                        case "plng":
+                            sNewCycl = "optn";
+                            myApp.sNewCycl = sNewCycl;
+                            btnCycl.setText(sNewCycl);
+
+                            passedTime = StopwatchUtil.getTransPassedTime(contextOfApplication);
+                            passedSecs = passedTime / 1000;
+                            iMinPassed = (int) Math.round(passedSecs / 60.0);
+                            db.doneEvent(
+                                    StopwatchUtil.getDateTransStarted(contextOfApplication),
+                                    "trans - plng",
+                                    iMinPassed,
+                                    0,
+                                    StopwatchUtil.getDateTimeTransStarted(contextOfApplication),
+                                    timeFormat.format(cNow.getTime()));
+
+                            StopwatchUtil.resetTransStartTime(contextOfApplication);
+                            StopwatchUtil.setDateTransStarted(
+                                    dateFormat.format(cNow.getTime()),
+                                    dateTimeFormat.format(cNow.getTime()));
+
+                            break;
+                        case "optn":
+                            sNewCycl = "decd";
+                            myApp.sNewCycl = sNewCycl;
+                            btnCycl.setText(sNewCycl);
+
+                            sCurEvent = "decd";
+                            myApp.sCurEvent = "decd";
+                            break;
+                    }
+
+                    bImpuls = true;
+                    myApp.bImpuls = true;
+                }
+            }
+        });
+
+        btnRouti.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                return true;
+            }
+        });
+
+        btnRouti.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                MyApplication myApp = ((MyApplication)getApplication());
+
+                if(bNewRouti || bNewWork || bNewTask) {
+                    // don't process phantom clicks
+                }
+                else {
+                    startEvent(true, false, false);
+                }
+            }
+        });
 
         btnWork.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -231,123 +366,49 @@ public class ActivityButtons extends WearableActivity
             @Override
             public void onClick(View view) {
                 // aka "done"
-
                 MyApplication myApp = ((MyApplication)getApplication());
 
-                if(bNewWork || bNewTask || bNewTrans) {
+                if(bNewRouti || bNewWork || bNewTask) {
                     // don't process phantom clicks
                 }
                 else {
-                    db.clearImp();
-
-                    bNewWork = true;
-                    myApp.bNewWork = true;
-                    myApp.sCurEvent = "";
-                    myApp.sCurType = "";
-
-                    Calendar cNow = Calendar.getInstance();
-                    StopwatchUtil.resetEventStartTime(contextOfApplication);
-                    StopwatchUtil.setDateEventStarted(
-                            dateFormat.format(cNow.getTime()),
-                            dateTimeFormat.format(cNow.getTime()));
-
-                    String sDelimElements = prefs.getString("0comprj", "");
-                    String sDelimPts = prefs.getString("0comprj" + "_Pts", "");
-                    String sDelimReplies = prefs.getString("0comprj" + "_Replies", "");
-
-                    Intent intent = new Intent(getApplicationContext(), ActivityList.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                    intent.putExtra("sListName", "comwork");
-                    intent.putExtra("sDelimItems", sDelimElements);
-                    intent.putExtra("sDelimPts", sDelimPts);
-                    //intent.putExtra("sReply", sReplyActive);
-
-                    if (sDelimReplies.length() > 0) {
-                        intent.putExtra("sDelimReplies", sDelimReplies);
-                    }
-
-                    bImpuls = true;
-                    myApp.bImpuls = true;
-                    startActivity(intent);
+                    startEvent(false, true, false);
                 }
             }
         });
 
-        btnOther.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                return true;
-            }
-        });
-
-        btnOther.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // aka "done"
-                MyApplication myApp = ((MyApplication)getApplication());
-
-                if(bNewWork || bNewTask || bNewTrans) {
-                    // don't process phantom clicks
-                }
-                else {
-                    db.clearImp();
-
-                    bNewTask = true;
-                    myApp.bNewTask = true;
-                    myApp.sCurEvent = "";
-                    myApp.sCurType = "";
-
-                    Calendar cNow = Calendar.getInstance();
-                    StopwatchUtil.resetEventStartTime(contextOfApplication);
-                    StopwatchUtil.setDateEventStarted(
-                            dateFormat.format(cNow.getTime()),
-                            dateTimeFormat.format(cNow.getTime()));
-
-                    String sDelimElements = prefs.getString("0comtas", "");
-                    String sDelimPts = prefs.getString("0comtas" + "_Pts", "");
-                    String sDelimReplies = prefs.getString("0comtas" + "_Replies", "");
-
-                    Intent intent = new Intent(getApplicationContext(), ActivityList.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                    intent.putExtra("sListName", "comtas");
-                    intent.putExtra("sDelimItems", sDelimElements);
-                    intent.putExtra("sDelimPts", sDelimPts);
-                    //intent.putExtra("sReply", sReplyActive);
-
-                    if (sDelimReplies.length() > 0) {
-                        intent.putExtra("sDelimReplies", sDelimReplies);
-                    }
-
-                    bImpuls = true;
-                    myApp.bImpuls = true;
-                    startActivity(intent);
-                }
-            }
-        });
-
-        btnTransDoneCanc.setOnLongClickListener(new View.OnLongClickListener() {
+        btnDoneCanc.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 MyApplication myApp = ((MyApplication) getApplication());
 
-                if(bNewWork || bNewTask || bNewTrans) {
+                if(bNewRouti || bNewWork || bNewTask) {
                     // aka "cancel"
 
                     tvTextLeft.setText("");
-                    btnWork.setText("work");
-                    btnOther.setText("oth");
-                    btnTransDoneCanc.setText("trans");
+                    tvTextRight.setText("");
 
+                    btnCycl.setText("offt");
+                    btnRouti.setText("routi");
+                    btnWork.setText("work");
+                    btnDoneCanc.setText("task");
+
+                    sNewCycl = "offt";
+                    myApp.sNewCycl = "offt";
+                    bNewRouti = false;
+                    myApp.bNewRouti = false;
                     bNewWork = false;
                     myApp.bNewWork = false;
                     bNewTask = false;
                     myApp.bNewTask = false;
-                    bNewTrans = false;
-                    myApp.bNewTrans = false;
+
                     bImpuls = false;
                     myApp.bImpuls = false;
                     sCurEvent = "";
                     myApp.sCurEvent = "";
+
+                    mChronometer.stop();
+                    mChronometer.setBase(SystemClock.elapsedRealtime());
 
                     db.clearImp();
                     recaption();
@@ -357,16 +418,22 @@ public class ActivityButtons extends WearableActivity
             }
         });
 
-        btnTransDoneCanc.setOnClickListener(new View.OnClickListener() {
+        btnDoneCanc.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 MyApplication myApp = ((MyApplication)getApplication());
 
-                if(bNewWork) {
-                    tvTextLeft.setText("");
-                    btnWork.setText("work");
-                    btnOther.setText("oth");
-                    btnTransDoneCanc.setText("trans");
+                String sEventPrefix = "";
+                if(bNewRouti || bNewWork || bNewTask) {
+                    if (bNewRouti) {
+                        sEventPrefix = "routi";
+                    }
+                    else if (bNewWork) {
+                        sEventPrefix = "work";
+                    }
+                    else if (bNewTask) {
+                        sEventPrefix = "task";
+                    }
 
                     sActiveFace = "1";
                     sDelimCaptions = prefs.getString("sDelimCaptions" + sActiveFace, "1;2;3;4;5;6;7;8;9;10;11;12");
@@ -382,15 +449,6 @@ public class ActivityButtons extends WearableActivity
                         sxReplies[11] = "";
                     }
 
-                    bNewWork = false;
-                    myApp.bNewWork = false;
-                    bNewTask = false;
-                    myApp.bNewTask = false;
-                    bNewTrans = false;
-                    myApp.bNewTrans = false;
-                    bImpuls = false;
-                    myApp.bImpuls = false;
-
                     sCurEvent = myApp.sCurEvent;
                     sType = myApp.sCurType;
 
@@ -399,190 +457,71 @@ public class ActivityButtons extends WearableActivity
 
                     Calendar cNow = Calendar.getInstance();
 
+                    StopwatchUtil.resetTransStartTime(contextOfApplication);
+                    StopwatchUtil.setDateTransStarted(
+                            dateFormat.format(cNow.getTime()),
+                            dateTimeFormat.format(cNow.getTime()));
+
                     long passedTime = StopwatchUtil.getEventPassedTime(contextOfApplication);
                     long passedSecs = passedTime / 1000;
                     int iMinPassed = (int) Math.round(passedSecs / 60.0);
                     db.doneEvent(
                             StopwatchUtil.getDateEventStarted(contextOfApplication),
-                            "work: " + myApp.sCurEvent,
+                            sEventPrefix + ": " + myApp.sCurEvent,
                             iMinPassed,
                             0,
                             StopwatchUtil.getDateTimeEventStarted(contextOfApplication),
                             timeFormat.format(cNow.getTime()));
 
-                    Intent intent = new Intent(getApplicationContext(), ActivityTwoLists.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                    intent.putExtra("sTrans", sCurEvent);
-                    intent.putExtra("iMin", iMinPassed);
-                    intent.putExtra("sType", sType);
+                    mChronometer.stop();
+                    mChronometer.setBase(SystemClock.elapsedRealtime());
 
-                    sCurEvent = "";
-                    myApp.sCurEvent = "";
-                    sType = "";
-                    // application-level sCurType
-                    // will be used by ActivityTwoLists
-                    //myApp.sCurType = "";
+                    sNewCycl = "offt";
+                    myApp.sNewCycl = "offt";
+                    bNewWork = false;
+                    myApp.bNewWork = false;
+                    bNewTask = false;
+                    myApp.bNewTask = false;
+                    bImpuls = false;
+                    myApp.bImpuls = false;
 
-                    startActivity(intent);
-                }
-                else if(bNewTask) {
-                    tvTextLeft.setText("");
+                    btnCycl.setText("offt");
+                    btnRouti.setText("routi");
                     btnWork.setText("work");
-                    btnOther.setText("oth");
-                    btnTransDoneCanc.setText("trans");
+                    btnDoneCanc.setText("task");
 
-                    sActiveFace = "1";
-                    sDelimCaptions = prefs.getString("sDelimCaptions" + sActiveFace, "1;2;3;4;5;6;7;8;9;10;11;12");
-                    sDelimPoints = prefs.getString("sDelimPoints" + sActiveFace, "1;2;3;4;5;6;7;8;9;10;11;12");
-                    sDelimReplies = prefs.getString("sDelimReplies" + sActiveFace, "1;2;3;4;5;6;7;8;9;10;11;12");
+                    if(bNewRouti) {
 
-                    sxCaptions = sDelimCaptions.split(";");
-                    sxPoints = sDelimPoints.split(";");
-                    sxReplies = sDelimReplies.split(";");
+                        Intent intent = new Intent(getApplicationContext(), ActivityTwoLists.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                        intent.putExtra("sTrans", sCurEvent);
+                        intent.putExtra("iMin", iMinPassed);
+                        intent.putExtra("sType", sType);
 
-                    // spaces make it work :-\
-                    if (sxReplies[11].equalsIgnoreCase(" ")) {
-                        sxReplies[11] = "";
+                        bNewRouti = false;
+                        myApp.bNewRouti = false;
+
+                        sCurEvent = "";
+                        myApp.sCurEvent = "";
+                        sType = "";
+                        // application-level sCurType
+                        // will be set by ActivityTwoLists
+                        //myApp.sCurType = "";
+                        startActivity(intent);
                     }
+                    else {
+                        bNewRouti = false;
+                        myApp.bNewRouti = false;
 
-                    bNewWork = false;
-                    myApp.bNewWork = false;
-                    bNewTask = false;
-                    myApp.bNewTask = false;
-                    bNewTrans = false;
-                    myApp.bNewTrans = false;
-                    bImpuls = false;
-                    myApp.bImpuls = false;
-
-                    sCurEvent = myApp.sCurEvent;
-                    sType = myApp.sCurType;
-
-                    sActiveFace = "1";
-                    prefs.edit().putString("sActiveFace","1").apply();
-                    getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-                    Calendar cNow = Calendar.getInstance();
-
-                    long passedTime = StopwatchUtil.getEventPassedTime(contextOfApplication);
-                    long passedSecs = passedTime / 1000;
-                    int iMinPassed = (int) Math.round(passedSecs / 60.0);
-                    db.doneEvent(
-                            StopwatchUtil.getDateEventStarted(contextOfApplication),
-                            "oth: " + myApp.sCurEvent,
-                            iMinPassed,
-                            0,
-                            StopwatchUtil.getDateTimeEventStarted(contextOfApplication),
-                            timeFormat.format(cNow.getTime()));
-
-                    Intent intent = new Intent(getApplicationContext(), ActivityTwoLists.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                    intent.putExtra("sTrans", sCurEvent);
-                    intent.putExtra("iMin", iMinPassed);
-                    intent.putExtra("sType", sType);
-
-                    sCurEvent = "";
-                    myApp.sCurEvent = "";
-                    sType = "";
-                    // application-level sCurType
-                    // will be used by ActivityTwoLists
-                    //myApp.sCurType = "";
-
-                    startActivity(intent);
-                }
-                else if(bNewTrans) {
-                    // already in transition
-                    // so clicked on 'dn'
-
-                    btnWork.setText("work");
-                    btnOther.setText("oth");
-                    btnTransDoneCanc.setText("trans");
-
-                    bNewWork = false;
-                    myApp.bNewWork = false;
-                    bNewTask = false;
-                    myApp.bNewTask = false;
-                    bNewTrans = false;
-                    myApp.bNewTrans = false;
-                    bImpuls = false;
-                    myApp.bImpuls = false;
-
-                    prefs.edit().putString("sActiveFace","1").apply();
-                    getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-                    Calendar cNow = Calendar.getInstance();
-
-                    long passedTime = StopwatchUtil.getEventPassedTime(contextOfApplication);
-                    long passedSecs = passedTime / 1000;
-                    int iMinPassed = (int) Math.round(passedSecs / 60.0);
-                    db.doneEvent(
-                            StopwatchUtil.getDateEventStarted(contextOfApplication),
-                            "trans: " + sCurEvent,
-                            iMinPassed,
-                            0,
-                            StopwatchUtil.getDateTimeEventStarted(contextOfApplication),
-                            timeFormat.format(cNow.getTime()));
-
-                    Intent intent = new Intent(getApplicationContext(), ActivityTwoLists.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
-
-                    intent.putExtra("sTrans", sCurEvent);
-                    intent.putExtra("iMin", iMinPassed);
-
-
-                    sCurEvent = "";
-                    myApp.sCurEvent = "";
-                    sType = "";
-                    myApp.sCurType = "";
-
-                    startActivity(intent);
+                        sCurEvent = "";
+                        myApp.sCurEvent = "";
+                        sType = "";
+                        myApp.sCurType = "";
+                        ActivityButtons.startActivity(getApplicationContext());
+                    }
                 }
                 else {
-                    // not yet in session
-                    // so clicked on 'trans'
-
-                    db.clearImp();
-                    btnWork.setText("");
-                    btnOther.setText("");
-                    btnTransDoneCanc.setText("dn cn");
-
-                    Calendar cNow = Calendar.getInstance();
-                    StopwatchUtil.resetEventStartTime(contextOfApplication);
-                    StopwatchUtil.setDateEventStarted(
-                            dateFormat.format(cNow.getTime()),
-                            dateTimeFormat.format(cNow.getTime()));
-
-                    db.clearImp();
-
-                    bNewTrans = true;
-                    myApp.bNewTrans = true;
-                    bImpuls = true;
-                    myApp.bImpuls = true;
-
-                    myApp.sCurEvent = "";
-                    myApp.sCurType = "";
-
-                    cNow = Calendar.getInstance();
-                    StopwatchUtil.resetEventStartTime(contextOfApplication);
-                    StopwatchUtil.setDateEventStarted(
-                            dateFormat.format(cNow.getTime()),
-                            dateTimeFormat.format(cNow.getTime()));
-
-                    String sDelimElements = prefs.getString("0comtrans", "");
-                    String sDelimPts = prefs.getString("0comtrans" + "_Pts", "");
-                    String sDelimReplies = prefs.getString("0comtrans" + "_Replies", "");
-
-                    Intent intent = new Intent(getApplicationContext(), ActivityList.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                    intent.putExtra("sListName", "comtrans");
-                    intent.putExtra("sDelimItems", sDelimElements);
-                    intent.putExtra("sDelimPts", sDelimPts);
-                    //intent.putExtra("sReply", sReplyActive);
-
-                    if (sDelimReplies.length() > 0) {
-                        intent.putExtra("sDelimReplies", sDelimReplies);
-                    }
-
-                    startActivity(intent);
+                    startEvent(false,false,true);
                 }
             }
         });
@@ -706,28 +645,12 @@ public class ActivityButtons extends WearableActivity
                 return true;
             }
         });
-
         btn2_4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //String sCaption = btn2_4.getText().toString();
-
-                /*
-                MyApplication myApp = (MyApplication)getApplication();
-                myApp.bIsTransition = !myApp.bIsTransition;
-                */
 
                 optionalMsg(sxReplies[7],false);
                 sendButton(sCat, sxCaptions[7], sxPoints[7], sxReplies[7], false);
-
-                /*
-                if(sCaption.equalsIgnoreCase("nxste")) {
-                    btn2_4.setText("done");
-                }
-                else if(sCaption.equalsIgnoreCase("done")) {
-                    btn2_4.setText("nxste");
-                }
-                */
             }
         });
         btn2_4.setOnLongClickListener(new View.OnLongClickListener() {
@@ -838,6 +761,7 @@ public class ActivityButtons extends WearableActivity
             sxReplies[11] = "";
         }
 
+        btnCycl.setText(sNewCycl);
         btn1_1.setText(sxCaptions[0]);
         btn1_2.setText(sxCaptions[1]);
         btn1_3.setText(sxCaptions[2]);
@@ -851,7 +775,51 @@ public class ActivityButtons extends WearableActivity
         btn3_3.setText(sxCaptions[10]);
         btn3_4.setText(sxCaptions[11]);
 
-        tvTextLeft.setText(myApp.sCurEvent);
+        if(bNewRouti || bNewWork || bNewTask) {
+            btnCycl.setText("");
+
+            String sCaptionLeft = "";
+
+            if (bNewRouti) {
+                sCaptionLeft = "routi";
+            }
+            if (bNewWork) {
+                sCaptionLeft = "work";
+            }
+            else if (bNewTask) {
+                sCaptionLeft = "task";
+            }
+
+            SpannableStringBuilder cs = new SpannableStringBuilder(sCaptionLeft + " " + myApp.sCurEvent);
+            cs.setSpan(new SuperscriptSpan(), 0, sCaptionLeft.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            cs.setSpan(new RelativeSizeSpan(0.85f), 0, sCaptionLeft.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            tvTextLeft.setText(cs);
+
+            int iTimReq = myApp.iCurTaskTimReq;
+            if (iTimReq > 1) {
+                mChronometer.setVisibility(View.VISIBLE);
+                tvTextRight.setText(Integer.toString(iTimReq));
+
+                if(bTimerTicking) {
+                    mChronometer.setBase(myApp.lTimerBase);
+                }
+                else {
+                    mChronometer.setBase(SystemClock.elapsedRealtime());
+
+                    bTimerTicking = true;
+                    myApp.bTimerTicking = true;
+                    myApp.lTimerBase = mChronometer.getBase();
+                }
+
+                mChronometer.start();
+            }
+            else
+            {
+                mChronometer.setVisibility(View.GONE);
+                bTimerTicking = false;
+                myApp.bTimerTicking = false;
+            }
+        }
     }
 
     private void optionalMsg(String sReply, boolean bIsLongClick) {
@@ -876,8 +844,8 @@ public class ActivityButtons extends WearableActivity
     private void sendButton(String sCat, String sCaption, String sPts, String sReply, boolean bIsLongClick) {
 
         MyApplication myApp = (MyApplication)getApplication();
-        btnUndo = (Button) findViewById(R.id.btnUndo);
-        btnWork = (Button) findViewById(R.id.btnWork);
+
+        mChronometer = (Chronometer) findViewById(R.id.chronometer);
 
         String[] sxCaptions = sCaption.split(" ");
         String sCaptionActive = sxCaptions[0];
@@ -921,10 +889,21 @@ public class ActivityButtons extends WearableActivity
             ActivityInput.startActivity(getApplicationContext(),"imme");
         }
         else if (sCaptionActive.equalsIgnoreCase("tmchk")) {
-            ActivityInput.startActivity(getApplicationContext(),"tmchk");
+            if(bIsLongClick) {
+                ActivityInput.startActivity(getApplicationContext(),"tmchk");
+            }
+            else {
+                Calendar cNow = Calendar.getInstance();
+                String sDateTime = dateTimeFormat.format(cNow.getTime());
+
+                Toast.makeText(getApplicationContext(),
+                        sDateTime.substring(sDateTime.length()-2),
+                        Toast.LENGTH_SHORT).show();
+            }
         }
         else if (sCaptionActive.equalsIgnoreCase("intf")
-                || sCaptionActive.equalsIgnoreCase("spacd")) {
+                || sCaptionActive.equalsIgnoreCase("spacd")
+                || sCaptionActive.equalsIgnoreCase("dart")) {
 
             String sDelimElements = prefs.getString("0numbers", "");
             String sDelimPts = prefs.getString("0numbers" + "_Pts", "");
@@ -941,15 +920,6 @@ public class ActivityButtons extends WearableActivity
                 intent.putExtra("sDelimReplies", sDelimReplies);
             }
             startActivity(intent);
-        }
-        else if (sCaptionActive.equalsIgnoreCase("a-int")) {
-            Calendar calNow = Calendar.getInstance();
-            String sDate = dateFormat.format(calNow.getTime());
-
-            db.addPts(sDate, 3, sCaptionActive, 0);
-        }
-        else if (sCaptionActive.equalsIgnoreCase("clr-i")) {
-            db.clearImp();
         }
         else if (sCaptionActive.equalsIgnoreCase("reset")) {
             db.clearDb();
@@ -1076,42 +1046,90 @@ public class ActivityButtons extends WearableActivity
         }
     }
 
-    /*
-        else if (sCaption.equalsIgnoreCase("done")){
-            StopwatchUtil.resetTransitionStartTime(this);
-            myApp.resetMissedPrompt();
+    public void startEvent(boolean bNewRouti, boolean bNewWork, boolean bNewTask) {
+        String sPrefPrefix = "";
+        String sListName = "";
+
+        if(bNewRouti) {
+            sPrefPrefix = "comrouti";
+            sListName = "comrouti";
         }
-        else if (sCaption.equalsIgnoreCase("log")) {
-            ActivityInput.startActivity(getApplicationContext(),"log");
+        else if(bNewWork) {
+            sPrefPrefix = "comprj";
+            sListName = "comwork";
         }
-        else if (sCaption.equalsIgnoreCase("nxste")) {
-            StopwatchUtil.setTransitionStopTime(this, System.currentTimeMillis());
+        else if(bNewTask) {
+            sPrefPrefix = "comtas";
+            sListName = "comtas";
+        }
 
-            long passedTime = StopwatchUtil.getTransitionPassedTime(this);
-            long passedSecs = passedTime / 1000;
-            int iPassedMin = (int) Math.round(passedSecs / 60.0);
+        MyApplication myApp = ((MyApplication)getApplication());
 
-            if (iPassedMin <= 3) {
-                myApp.iCountGoodTransitions++;
-            } else {
-                myApp.iCountGoodTransitions = 0;
-            }
+        sCurEvent = myApp.sCurEvent;
+        if(sCurEvent.length() > 0) {
+            sCurEvent = " - " + sCurEvent;
+        }
 
-            MessageData messageData = new MessageData();
-            messageData.setText1("transition");
-            messageData.setText2(String.valueOf(iPassedMin));
+        Calendar cNow = Calendar.getInstance();
 
-            myApp.resetMissedPrompt();
+        long passedTime = StopwatchUtil.getTransPassedTime(contextOfApplication);
+        long passedSecs = passedTime / 1000;
+        int iMinPassed = (int) Math.round(passedSecs / 60.0);
+        db.doneEvent(
+                StopwatchUtil.getDateTransStarted(contextOfApplication),
+                "trans" + sCurEvent,
+                iMinPassed,
+                0,
+                StopwatchUtil.getDateTimeTransStarted(contextOfApplication),
+                timeFormat.format(cNow.getTime()));
 
-            final String messageString = messageData.toJsonString();
-            WearMessage wearMessage = new WearMessage(getApplicationContext());
-            wearMessage.sendMessage("/done-task", messageString);
+        StopwatchUtil.resetEventStartTime(contextOfApplication);
+        StopwatchUtil.setDateEventStarted(
+                dateFormat.format(cNow.getTime()),
+                dateTimeFormat.format(cNow.getTime()));
+
+        String sDelimElements = prefs.getString("0" + sPrefPrefix, "");
+        String sDelimPts = prefs.getString("0" + sPrefPrefix + "_Pts", "");
+        String sDelimReplies = prefs.getString("0" + sPrefPrefix + "_Replies", "");
+
+        Intent intent = new Intent(getApplicationContext(), ActivityList.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        intent.putExtra("sListName", sListName);
+        intent.putExtra("sDelimItems", sDelimElements);
+        intent.putExtra("sDelimPts", sDelimPts);
+        //intent.putExtra("sReply", sReplyActive);
+
+        if (sDelimReplies.length() > 0) {
+            intent.putExtra("sDelimReplies", sDelimReplies);
+        }
+
+        db.clearImp();
+
+        if(bNewRouti) {
+            bNewRouti = true;
+            myApp.bNewRouti = true;
+        }
+        else if(bNewWork) {
+            bNewWork = true;
+            myApp.bNewWork = true;
 
         }
-    */
+        else if(bNewTask) {
+            bNewTask = true;
+            myApp.bNewTask = true;
+        }
+
+        bImpuls = true;
+        myApp.bImpuls = true;
+        myApp.sCurEvent = "";
+        myApp.sCurType = "";
+
+        startActivity(intent);
+    }
 
     @Override
     public boolean dispatchTouchEvent (MotionEvent e) {
         return mGestureDetector.onTouchEvent(e) || super.dispatchTouchEvent(e);
     }
+
 }

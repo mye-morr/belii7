@@ -93,7 +93,11 @@ public class ActivityList extends Activity{
                     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                         String sItem = mListViewMain.getItemAtPosition(i).toString();
 
-                        if(sListName.equalsIgnoreCase("comwork")) {
+                        if(sListName.equalsIgnoreCase("comrouti")) {
+                            // also resets the task start time
+                            ActivityInput.startActivity(getApplicationContext(), "comrouti", sItem, sxReplies[i]);
+                        }
+                        else if(sListName.equalsIgnoreCase("comwork")) {
                             // also resets the task start time
                             ActivityInput.startActivity(getApplicationContext(), "comwork", sItem, sxReplies[i]);
                         }
@@ -101,16 +105,13 @@ public class ActivityList extends Activity{
                             // also resets the task start time
                             ActivityInput.startActivity(getApplicationContext(), "comtas", sItem, sxReplies[i]);
                         }
-                        else if(sListName.equalsIgnoreCase("comtrans")) {
-                            // also resets the task start time
-                            ActivityInput.startActivity(getApplicationContext(), "comtrans", sItem, sxReplies[i]);
-                        }
                         else if(sListName.equalsIgnoreCase("l0st")) {
                             // also resets the task start time
                             ActivityInput.startActivity(getApplicationContext(), "l0st", sItem, sxReplies[i]);
                         }
                         else if(sListName.equalsIgnoreCase("intf")
-                                || sListName.equalsIgnoreCase("spacd")) {
+                                || sListName.equalsIgnoreCase("spacd")
+                                || sListName.equalsIgnoreCase("dart")) {
 
                             Calendar calNow = Calendar.getInstance();
 

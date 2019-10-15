@@ -1,10 +1,7 @@
 package com.better_computer.habitaid;
 
 import android.app.AlertDialog;
-import android.content.ContentValues;
 import android.content.DialogInterface;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteStatement;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,7 +10,6 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -22,11 +18,8 @@ import android.widget.Toast;
 
 import com.better_computer.habitaid.data.DatabaseHelper;
 import com.better_computer.habitaid.data.SearchEntry;
-import com.better_computer.habitaid.data.core.Games;
-import com.better_computer.habitaid.data.core.GamesHelper;
 import com.better_computer.habitaid.data.core.NonSched;
 import com.better_computer.habitaid.data.core.NonSchedHelper;
-import com.better_computer.habitaid.form.schedule.GamesListAdapter;
 import com.better_computer.habitaid.form.schedule.NonSchedListAdapter;
 import com.better_computer.habitaid.share.ButtonsData;
 import com.better_computer.habitaid.share.MessageData;
@@ -62,7 +55,6 @@ public class FragmentGames extends AbstractBaseFragment
     @Override
     public void refresh() {
         final ListView listViewGames = ((ListView) rootView.findViewById(R.id.schedule_games));
-        final ListView listViewLog = ((ListView) rootView.findViewById(R.id.schedule_list));
         final EditText etPtsLos = ((EditText) rootView.findViewById(R.id.pts_los));
         final EditText etPtsWa = ((EditText) rootView.findViewById(R.id.pts_wa));
         final EditText etPtsStru = ((EditText) rootView.findViewById(R.id.pts_stru));
@@ -74,20 +66,6 @@ public class FragmentGames extends AbstractBaseFragment
         keys.add(new SearchEntry(SearchEntry.Type.STRING, "cat", SearchEntry.Search.EQUAL, "games"));
         List<NonSched> listNsComTas = (List<NonSched>)(List<?>)nonSchedHelper.find(keys, "ORDER BY iprio");
         listViewGames.setAdapter(new NonSchedListAdapter(context, listNsComTas));
-
-        List<Games> games;
-        List<SearchEntry> keys2 = new ArrayList<SearchEntry>();
-        keys2.add(new SearchEntry(SearchEntry.Type.STRING, "timestamp", SearchEntry.Search.LIKE, sDate + "%"));
-        if(bHide) {
-            keys2.add(new SearchEntry(SearchEntry.Type.STRING, "cat", SearchEntry.Search.NOT_EQUAL, "00focus"));
-            keys2.add(new SearchEntry(SearchEntry.Type.STRING, "content", SearchEntry.Search.NOT_EQUAL, "dun: transition"));
-            keys2.add(new SearchEntry(SearchEntry.Type.STRING, "content", SearchEntry.Search.NOT_EQUAL, "dun: engaged"));
-            games = (List<Games>) (List<?>) gamesHelper.find(keys2);
-        }
-        else {
-            games = (List<Games>) (List<?>) gamesHelper.find(keys2);
-        }
-        listViewLog.setAdapter(new GamesListAdapter(context, games));
 
         /*
         all of this works but alarming to the reptilian brain so.. (hiding)
@@ -155,9 +133,7 @@ public class FragmentGames extends AbstractBaseFragment
 
         this.databaseHelper = DatabaseHelper.getInstance();
         this.nonSchedHelper = DatabaseHelper.getInstance().getHelper(NonSchedHelper.class);
-        this.gamesHelper = DatabaseHelper.getInstance().getHelper(GamesHelper.class);
 
-        final ListView listViewSt = ((ListView) rootView.findViewById(R.id.schedule_list));
         final ListView listViewGames = ((ListView) rootView.findViewById(R.id.schedule_games));
         //stopwatchView = (TextView) rootView.findViewById(R.id.stopwatch);
 
@@ -225,40 +201,6 @@ public class FragmentGames extends AbstractBaseFragment
                     et3_3.setText("");
                     et3_4.setText("");
                 }
-            }
-        });
-
-        listViewSt.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                final Games st = (Games) listViewSt.getItemAtPosition(i);
-                AlertDialog.Builder alertOptions = new AlertDialog.Builder(context);
-                List<String> optsList = new ArrayList<String>();
-
-                optsList.add("Delete");
-
-                final String[] options = optsList.toArray(new String[]{});
-                alertOptions.setAdapter(new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, android.R.id.text1, options), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                        if (options[i].equalsIgnoreCase("DELETE")) {
-                            Toast.makeText(context, "Schedule deleted.", Toast.LENGTH_SHORT).show();
-                            gamesHelper.delete(st.get_id());
-                            refresh();
-                            dialogInterface.dismiss();
-                        }
-                    }
-                });
-
-                alertOptions.setCancelable(true);
-                alertOptions.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                    }
-                });
-                alertOptions.show();
             }
         });
 

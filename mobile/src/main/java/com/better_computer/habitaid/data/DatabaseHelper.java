@@ -10,13 +10,11 @@ import java.util.List;
 import com.better_computer.habitaid.data.core.ContactItemHelper;
 import com.better_computer.habitaid.data.core.ContentHelper;
 import com.better_computer.habitaid.data.core.ContentLogHelper;
-import com.better_computer.habitaid.data.core.GamesHelper;
 import com.better_computer.habitaid.data.core.MessageHelper;
 import com.better_computer.habitaid.data.core.PlayerHelper;
 import com.better_computer.habitaid.data.core.NonSchedHelper;
 import com.better_computer.habitaid.data.core.ScheduleHelper;
-import com.better_computer.habitaid.data.core.SessionHelper;
-import com.better_computer.habitaid.data.core.EventHelper;
+import com.better_computer.habitaid.data.core.EventsHelper;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -33,12 +31,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             databaseHelper.modelHelpers.add(new ScheduleHelper(context));
             databaseHelper.modelHelpers.add(new NonSchedHelper(context));
             databaseHelper.modelHelpers.add(new ContactItemHelper(context));
-            databaseHelper.modelHelpers.add(new GamesHelper(context));
             databaseHelper.modelHelpers.add(new PlayerHelper(context));
             databaseHelper.modelHelpers.add(new ContentHelper(context));
-            databaseHelper.modelHelpers.add(new SessionHelper(context));
             databaseHelper.modelHelpers.add(new ContentLogHelper(context));
-            databaseHelper.modelHelpers.add(new EventHelper(context));
+            databaseHelper.modelHelpers.add(new EventsHelper(context));
         }
     }
 

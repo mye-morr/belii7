@@ -157,7 +157,15 @@ public class ActivityInput extends WearableActivity
 
         mTvMainTask.setText(sPurpose);
 
-        if(sPurpose.equalsIgnoreCase("comwork")) {
+        if(sPurpose.equalsIgnoreCase("comrouti")) {
+            String sTask = getIntent().getStringExtra("Task");
+            sType = getIntent().getStringExtra("Type");
+            mTvLetters.setText(sTask);
+            bTimes = true;
+
+            sPurpose = "new_routi";
+        }
+        else if(sPurpose.equalsIgnoreCase("comwork")) {
             String sTask = getIntent().getStringExtra("Task");
             sType = getIntent().getStringExtra("Type");
             mTvLetters.setText(sTask);
@@ -172,14 +180,6 @@ public class ActivityInput extends WearableActivity
             bTimes = true;
 
             sPurpose = "new_task";
-        }
-        else if(sPurpose.equalsIgnoreCase("comtrans")) {
-            String sTask = getIntent().getStringExtra("Task");
-            sType = getIntent().getStringExtra("Type");
-            mTvLetters.setText(sTask);
-            bTimes = true;
-
-            sPurpose = "new_trans";
         }
         else if(sPurpose.equalsIgnoreCase("spacd")) {
             bTimes = true;
@@ -217,6 +217,9 @@ public class ActivityInput extends WearableActivity
             public void onClick(View view) {
             String sTask = mTvLetters.getText().toString();
             String sMinutes = mTvTimes.getText().toString();
+            if (sMinutes.length() == 0) {
+                sMinutes = "1";
+            }
 
             if(sPurpose.equalsIgnoreCase("postpone")) {
                 myApp.setTimeTaskDue(System.currentTimeMillis()
@@ -237,6 +240,20 @@ public class ActivityInput extends WearableActivity
                 myApp.setTimeWhipDue(System.currentTimeMillis()
                         + iIncr * 60 * 1000);
             }
+            else if(sPurpose.equalsIgnoreCase("new_routi")) {
+
+                Calendar cNow = Calendar.getInstance();
+                StopwatchUtil.resetEventStartTime(getApplicationContext());
+                StopwatchUtil.setDateEventStarted(
+                        dateFormat.format(cNow.getTime()),
+                        dateTimeFormat.format(cNow.getTime()));
+
+                myApp.bNewRouti = true;
+                myApp.sCurEvent = sTask;
+                myApp.sCurType = sType;
+
+                myApp.iCurTaskTimReq = Integer.valueOf(sMinutes);
+            }
             else if(sPurpose.equalsIgnoreCase("new_work")) {
 
                 Calendar cNow = Calendar.getInstance();
@@ -248,6 +265,8 @@ public class ActivityInput extends WearableActivity
                 myApp.bNewWork = true;
                 myApp.sCurEvent = sTask;
                 myApp.sCurType = sType;
+
+                myApp.iCurTaskTimReq = Integer.valueOf(sMinutes);
             }
             else if(sPurpose.equalsIgnoreCase("new_task")) {
                 Calendar cNow = Calendar.getInstance();
@@ -260,24 +279,12 @@ public class ActivityInput extends WearableActivity
                 myApp.sCurEvent = sTask;
                 myApp.sCurType = sType;
 
-                /* THIS IS THE GOAL!! BACKBURNER FOR NOW
                 myApp.iCurTaskTimReq = Integer.valueOf(sMinutes);
+
+                /* THIS IS THE GOAL!! BACKBURNER FOR NOW
                 myApp.setTimeTaskDue(System.currentTimeMillis()
                         + Integer.valueOf(sMinutes) * 60 * 1000);
                 */
-            }
-            else if(sPurpose.equalsIgnoreCase("new_trans")) {
-
-                Calendar cNow = Calendar.getInstance();
-                StopwatchUtil.resetEventStartTime(getApplicationContext());
-                StopwatchUtil.setDateEventStarted(
-                        dateFormat.format(cNow.getTime()),
-                        dateTimeFormat.format(cNow.getTime()));
-
-                myApp.bNewTrans = true;
-                myApp.sCurEvent = sTask;
-                myApp.sCurType = sType;
-
             }
             else if(sPurpose.equalsIgnoreCase("retro")) {
                 if(sMinutes.length()==0) {

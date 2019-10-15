@@ -244,134 +244,149 @@
                 />
         </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:orientation="vertical"
-        app:layout_box="all">
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:orientation="horizontal"
-            app:layout_box="all"
-            android:weightSum="1">
-
-            <TextView
-                android:id="@+id/tvTextLeft"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=""
-                android:layout_marginLeft="12dp"
-                android:layout_marginRight="12dp"
-                android:layout_gravity="left"
-                android:width="0dp"
-                android:layout_weight="0.9"
-                />
-
-            <TextView
-                android:id="@+id/tvTextRight"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=""
-                android:layout_marginLeft="12dp"
-                android:layout_marginRight="12dp"
-                android:layout_gravity="right"
-                android:width="0dp"
-                android:layout_weight="0.1"
-                />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             app:layout_box="all">
 
-            <Button
-                android:id="@+id/btnUndo"
-                android:layout_width="50dp"
-                android:layout_marginTop="-6dp"
-                android:layout_marginBottom="-6dp"
-                android:layout_marginLeft="-2dp"
-                android:layout_marginRight="-3dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="undo"
-                style="@style/Widget.AppCompat.Button.Borderless.Colored"
-                android:textSize="14sp"
-                android:textColor="@color/abc_search_url_text_normal"
-                android:textAllCaps="false"
-                android:focusable="false"
-                android:paddingLeft="4dp"
-                android:paddingRight="4dp"
-                android:layout_gravity="right"
-                android:clickable="false"
-                />
+                android:layout_gravity="center_vertical"
+                android:orientation="horizontal"
+                app:layout_box="all"
+                android:weightSum="1">
 
-            <Button
-                android:id="@+id/btnWork"
-                android:layout_width="50dp"
-                android:layout_marginTop="-6dp"
-                android:layout_marginBottom="-6dp"
-                android:layout_marginLeft="-2dp"
-                android:layout_marginRight="-3dp"
-                android:layout_height="wrap_content"
-                android:text="sesh"
-                style="@style/Widget.AppCompat.Button.Borderless.Colored"
-                android:textSize="14sp"
-                android:textColor="@color/abc_search_url_text_normal"
-                android:textAllCaps="false"
-                android:focusable="false"
-                android:paddingLeft="4dp"
-                android:paddingRight="4dp"
-                android:layout_gravity="right"
-                android:clickable="false"
-                />
+                <TextView
+                    android:id="@+id/tvTextLeft"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:layout_marginLeft="12dp"
+                    android:layout_marginRight="12dp"
+                    android:layout_gravity="left"
+                    android:width="0dp"
+                    android:layout_weight="0.69"
+                    />
 
-            <Button
-                android:id="@+id/btnOther"
-                android:layout_width="50dp"
-                android:layout_marginTop="-6dp"
-                android:layout_marginBottom="-6dp"
-                android:layout_marginLeft="-2dp"
-                android:layout_marginRight="-3dp"
-                android:layout_height="wrap_content"
-                android:text="task"
-                style="@style/Widget.AppCompat.Button.Borderless.Colored"
-                android:textSize="14sp"
-                android:textColor="@color/abc_search_url_text_normal"
-                android:textAllCaps="false"
-                android:focusable="false"
-                android:paddingLeft="4dp"
-                android:paddingRight="4dp"
-                android:layout_gravity="right"
-                />
+                <Chronometer android:id="@+id/chronometer"
+                    android:format="@string/chronometer_initial_format"
+                    android:layout_width="50dp"
+                    android:layout_marginTop="-15dp"
+                    android:layout_marginBottom="-19.5dp"
+                    android:layout_height="wrap_content"
+                    style="@style/Widget.AppCompat.Button.Borderless.Colored"
+                    android:textSize="14sp"
+                    android:textColor="@color/abc_search_url_text_normal"
+                    android:textAllCaps="false"
+                    android:focusable="false"
+                    android:clickable="false"
+                    android:layout_weight="0.15"
+                    />
 
-            <Button
-                android:id="@+id/btnTransDoneCanc"
-                android:layout_width="50dp"
-                android:layout_marginTop="-6dp"
-                android:layout_marginBottom="-6dp"
-                android:layout_marginLeft="-2dp"
-                android:layout_marginRight="-3dp"
+                <TextView
+                    android:id="@+id/tvTextRight"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:layout_marginLeft="12dp"
+                    android:layout_marginRight="12dp"
+                    android:layout_gravity="right"
+                    android:width="0dp"
+                    android:layout_weight="0.16"
+                    />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="trans"
-                style="@style/Widget.AppCompat.Button.Borderless.Colored"
-                android:textSize="14sp"
-                android:textColor="@color/abc_search_url_text_normal"
-                android:textAllCaps="false"
-                android:focusable="false"
-                android:paddingLeft="4dp"
-                android:paddingRight="4dp"
-                android:layout_gravity="right"
-                />
+                android:layout_gravity="center_vertical"
+                android:orientation="horizontal"
+                app:layout_box="all">
+
+                <Button
+                    android:id="@+id/btnCycl"
+                    android:layout_width="50dp"
+                    android:layout_marginTop="-6dp"
+                    android:layout_marginBottom="-6dp"
+                    android:layout_marginLeft="-2dp"
+                    android:layout_marginRight="-3dp"
+                    android:layout_height="wrap_content"
+                    android:text="undo"
+                    style="@style/Widget.AppCompat.Button.Borderless.Colored"
+                    android:textSize="14sp"
+                    android:textColor="@color/abc_search_url_text_normal"
+                    android:textAllCaps="false"
+                    android:focusable="false"
+                    android:paddingLeft="4dp"
+                    android:paddingRight="4dp"
+                    android:layout_gravity="right"
+                    android:clickable="false"
+                    />
+
+                <Button
+                    android:id="@+id/btnRouti"
+                    android:layout_width="50dp"
+                    android:layout_marginTop="-6dp"
+                    android:layout_marginBottom="-6dp"
+                    android:layout_marginLeft="-2dp"
+                    android:layout_marginRight="-3dp"
+                    android:layout_height="wrap_content"
+                    android:text="routi"
+                    style="@style/Widget.AppCompat.Button.Borderless.Colored"
+                    android:textSize="14sp"
+                    android:textColor="@color/abc_search_url_text_normal"
+                    android:textAllCaps="false"
+                    android:focusable="false"
+                    android:paddingLeft="4dp"
+                    android:paddingRight="4dp"
+                    android:layout_gravity="right"
+                    android:clickable="false"
+                    />
+
+                <Button
+                    android:id="@+id/btnWork"
+                    android:layout_width="50dp"
+                    android:layout_marginTop="-6dp"
+                    android:layout_marginBottom="-6dp"
+                    android:layout_marginLeft="-2dp"
+                    android:layout_marginRight="-3dp"
+                    android:layout_height="wrap_content"
+                    android:text="work"
+                    style="@style/Widget.AppCompat.Button.Borderless.Colored"
+                    android:textSize="14sp"
+                    android:textColor="@color/abc_search_url_text_normal"
+                    android:textAllCaps="false"
+                    android:focusable="false"
+                    android:paddingLeft="4dp"
+                    android:paddingRight="4dp"
+                    android:layout_gravity="right"
+                    />
+
+                <Button
+                    android:id="@+id/btnDoneCanc"
+                    android:layout_width="50dp"
+                    android:layout_marginTop="-6dp"
+                    android:layout_marginBottom="-6dp"
+                    android:layout_marginLeft="-2dp"
+                    android:layout_marginRight="-3dp"
+                    android:layout_height="wrap_content"
+                    android:text="task"
+                    style="@style/Widget.AppCompat.Button.Borderless.Colored"
+                    android:textSize="14sp"
+                    android:textColor="@color/abc_search_url_text_normal"
+                    android:textAllCaps="false"
+                    android:focusable="false"
+                    android:paddingLeft="4dp"
+                    android:paddingRight="4dp"
+                    android:layout_gravity="right"
+                    />
+
+            </LinearLayout>
 
         </LinearLayout>
-
-    </LinearLayout>
 
     </LinearLayout>
 </android.support.wearable.view.BoxInsetLayout>

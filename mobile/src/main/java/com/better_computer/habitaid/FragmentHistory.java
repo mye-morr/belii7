@@ -14,8 +14,8 @@ import com.better_computer.habitaid.data.SearchEntry;
 import com.better_computer.habitaid.data.core.Message;
 import com.better_computer.habitaid.data.core.MessageHelper;
 import com.better_computer.habitaid.data.core.ScheduleHelper;
-import com.better_computer.habitaid.data.core.Event;
-import com.better_computer.habitaid.data.core.EventHelper;
+import com.better_computer.habitaid.data.core.Events;
+import com.better_computer.habitaid.data.core.EventsHelper;
 import com.better_computer.habitaid.form.schedule.MessageListAdapter;
 import com.better_computer.habitaid.form.schedule.TransitionListAdapter;
 
@@ -50,8 +50,8 @@ public class FragmentHistory extends AbstractBaseFragment {
             @Override
             public void onClick(View view) {
 
-                EventHelper eventHelper = DatabaseHelper.getInstance().getHelper(EventHelper.class);
-                eventHelper.delete(new ArrayList<SearchEntry>());    // delete all
+                EventsHelper eventsHelper = DatabaseHelper.getInstance().getHelper(EventsHelper.class);
+                eventsHelper.delete(new ArrayList<SearchEntry>());    // delete all
             }
         });
 
@@ -68,7 +68,7 @@ public class FragmentHistory extends AbstractBaseFragment {
         Collections.reverse(messages);
         ((ListView) dialog.findViewById(R.id.message_list)).setAdapter(new MessageListAdapter(context, messages));
 
-        List<Event> events = (List<Event>)(List<?>) DatabaseHelper.getInstance().getHelper(EventHelper.class).findAll();
+        List<Events> events = (List<Events>)(List<?>) DatabaseHelper.getInstance().getHelper(EventsHelper.class).findAll();
         Collections.reverse(events);
         ((ListView) dialog.findViewById(R.id.transition_list)).setAdapter(new TransitionListAdapter(context, events));
     }

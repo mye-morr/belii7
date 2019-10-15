@@ -1,5 +1,6 @@
 package com.better_computer.habitaid;
 
+import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -34,15 +35,19 @@ public class MyApplication extends Application {
     private static int iCtrMissed = 0;
 
     public volatile static boolean bInDrill = false;
+    public volatile static boolean bNewRouti = false;
     public volatile static boolean bNewWork = false;
     public volatile static boolean bNewTask = false;
-    public volatile static boolean bNewTrans = false;
     public volatile static boolean bImpuls = false;
+    public volatile static boolean bTimerTicking = false;
+
+    public volatile static String sNewCycl = "offt";
     public volatile static String sCurEvent = "";
     public volatile static String sCurType = "";
-    public static long lCountdownNextLib = 5;
+    public volatile static int iCurTaskTimReq = 0;
+    public volatile static long lTimerBase = 0;
 
-    public static int iCurTaskTimReq = 0;
+    public static long lCountdownNextLib = 5;
     public static long lTimeTaskDue = 0;
     public static long lTimeWhipDue = 0;
 
@@ -74,7 +79,7 @@ public class MyApplication extends Application {
             bTimerTurnedOff = false;
         }
         else {
-            if (bNewWork || bNewTask || bNewTrans) {
+            if (bNewWork || bNewTask) {
                 if ((iCtrMissed > 15) &&
                         (iCtrMissed % 3 == 0)) {
 
@@ -175,6 +180,7 @@ public class MyApplication extends Application {
         }
     };
 
+    @SuppressLint("InvalidWakeLockTag")
     public void toggleTimer() {
 
         if(!bIsOnTimer) {

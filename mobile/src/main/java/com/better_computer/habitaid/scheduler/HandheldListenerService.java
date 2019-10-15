@@ -4,21 +4,14 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Pair;
-import android.widget.Toast;
 
-import com.better_computer.habitaid.MainActivity;
 import com.better_computer.habitaid.MyApplication;
 import com.better_computer.habitaid.data.DatabaseHelper;
 import com.better_computer.habitaid.data.SearchEntry;
-import com.better_computer.habitaid.data.core.Games;
-import com.better_computer.habitaid.data.core.GamesHelper;
-import com.better_computer.habitaid.data.core.NonSchedHelper;
 import com.better_computer.habitaid.data.core.Schedule;
 import com.better_computer.habitaid.data.core.ScheduleHelper;
-import com.better_computer.habitaid.data.core.Session;
-import com.better_computer.habitaid.data.core.SessionHelper;
-import com.better_computer.habitaid.data.core.Event;
-import com.better_computer.habitaid.data.core.EventHelper;
+import com.better_computer.habitaid.data.core.Events;
+import com.better_computer.habitaid.data.core.EventsHelper;
 import com.better_computer.habitaid.service.PlayerService;
 import com.better_computer.habitaid.share.MessageData;
 import com.better_computer.habitaid.share.PressedData;
@@ -46,120 +39,21 @@ public class HandheldListenerService extends WearableListenerService {
 
         this.scheduleHelper = DatabaseHelper.getInstance().getHelper(ScheduleHelper.class);
 
-        if(event.getPath().equalsIgnoreCase("/status")) {
-            byte[] inBytesData = event.getData();
-            String jsonString = new String(inBytesData);
-            PressedData pressedData = PressedData.toPressedData(jsonString);
-
-            Games game = new Games();
-            game.setCat(pressedData.getCat());
-            game.setSubcat("");
-            game.setContent(pressedData.getCaption());
-            game.setPts(parseInt(pressedData.getPoints()));
-            game.setTimestamp(Calendar.getInstance());
-
-            DatabaseHelper.getInstance().getHelper(GamesHelper.class).createOrUpdate(game);
-
-            /*
-            String sCat = pressedData.getCat();
-
-            if (sCat.equalsIgnoreCase("focus")) {
-                String sPressed = pressedData.getCaption();
-                String sMultiplier = pressedData.getPoints();
-                String sGamesLastStatus = StopwatchUtil.getStopwatchLastStatus(this);
-
-                if (sPressed.startsWith("^")) { // it's a count
-                    Games game = new Games();
-                    game.setCat(sCat);
-                    game.setSubcat("count");
-                    game.setContent(sPressed);
-                    game.setPts(-1);
-                    game.setTimestamp(Calendar.getInstance());
-                    DatabaseHelper.getInstance().getHelper(GamesHelper.class).createOrUpdate(game);
-
-                } else { // it's a drain
-
-
-                    MyApplication myApp = (MyApplication)getApplication();
-
-                    if (sPressed.equalsIgnoreCase("maint") ||
-                            !sPressed.equalsIgnoreCase(sGamesLastStatus)) {
-                        StopwatchUtil.setStopwatchStopTime(this, System.currentTimeMillis());
-
-                        long passedTime = StopwatchUtil.getStopwatchPassedTime(this);
-                        long passedSecs = passedTime / 1000;
-
-                        if (passedSecs < 60 * 25) { // 25 min log-limit
-                            Games game = new Games();
-                            game.setCat(sCat);
-                            game.setSubcat("");
-                            game.setContent(sGamesLastStatus);
-
-                            int iPassedMin = -1 * ((int) Math.round(((1+(0.2 * Integer.valueOf(sMultiplier))) * passedSecs) / 60.0));
-                            if (sGamesLastStatus.equalsIgnoreCase("maint")) {
-                                iPassedMin = -iPassedMin;
-                            }
-
-                            game.setPts(iPassedMin);
-                            game.setTimestamp(Calendar.getInstance());
-
-                            DatabaseHelper.getInstance().getHelper(GamesHelper.class).createOrUpdate(game);
-                            StopwatchUtil.resetStopwatchStartTime(this, sPressed);
-                        } else {
-                            StopwatchUtil.resetStopwatchStartTime(this, sPressed);
-                        }
-                    }
-
-
-                }
-            } else {
-                Games game = new Games();
-                game.setCat(pressedData.getCat());
-                game.setSubcat("");
-                game.setContent(pressedData.getCaption());
-                game.setPts(parseInt(pressedData.getPoints()));
-                game.setTimestamp(Calendar.getInstance());
-
-                DatabaseHelper.getInstance().getHelper(GamesHelper.class).createOrUpdate(game);
-            }
-
-            */
-        }
-        else if(event.getPath().equalsIgnoreCase("/done-session")) {
-            byte[] inBytesData = event.getData();
-            String jsonString = new String(inBytesData);
-            SessionData sessionData = SessionData.toSessionData(jsonString);
-
-            Session sesh = new Session();
-            sesh.setDate(sessionData.getDate());
-            sesh.setName(sessionData.getName());
-            sesh.setTimDur(parseInt(sessionData.getTimDur()));
-            sesh.setTask(sessionData.getTask());
-            sesh.setImp(parseInt(sessionData.getImp()));
-            sesh.setImpDets(sessionData.getImpDets());
-            sesh.setPts(parseInt(sessionData.getPts()));
-            sesh.setPtsDets(sessionData.getPtsDets());
-            sesh.setDtTimStr(sessionData.getDtTimStr());
-            sesh.setTimEnd(sessionData.getTimEnd());
-
-            DatabaseHelper.getInstance().getHelper(SessionHelper.class).createOrUpdate(sesh);
-        }
-        else if(event.getPath().equalsIgnoreCase("/done-event")) {
+        if(event.getPath().equalsIgnoreCase("/done-event")) {
             byte[] inBytesData = event.getData();
             String jsonString = new String(inBytesData);
             EventData eventData = EventData.toEventData(jsonString);
 
-            Event trans = new Event();
-            trans.setDate(eventData.getDate());
-            trans.setName(eventData.getName());
-            trans.setTimDur(parseInt(eventData.getTimDur()));
-            trans.setPtsVal(parseInt(eventData.getPtsVal()));
-            trans.setImp(parseInt(eventData.getImp()));
-            trans.setImpDets(eventData.getImpDets());
-            trans.setDtTimStr(eventData.getDtTimStr());
-            trans.setTimEnd(eventData.getTimEnd());
+            Events trans = new Events();
+            trans.setsDate(eventData.getDate());
+            trans.setsName(eventData.getName());
+            trans.setiTimDur(parseInt(eventData.getTimDur()));
+            trans.setiPtsVal(parseInt(eventData.getPtsVal()));
+            trans.setiImp(parseInt(eventData.getImp()));
+            trans.setsDtTimStr(eventData.getDtTimStr());
+            trans.setsTimEnd(eventData.getTimEnd());
 
-            DatabaseHelper.getInstance().getHelper(EventHelper.class).createOrUpdate(trans);
+            DatabaseHelper.getInstance().getHelper(EventsHelper.class).createOrUpdate(trans);
         }
         else if(event.getPath().equalsIgnoreCase("/fetch-next-card")) {
             Context context = getApplicationContext();
@@ -172,38 +66,6 @@ public class HandheldListenerService extends WearableListenerService {
         else if(event.getPath().equalsIgnoreCase("/reset-cards")) {
             MyApplication myApp = ((MyApplication) getApplication());
             myApp.dynaArray.init();
-        }
-        else if(event.getPath().equalsIgnoreCase("/done-task")) {
-            byte[] inBytesData = event.getData();
-            String jsonString = new String(inBytesData);
-            MessageData messageData = MessageData.toMessageData(jsonString);
-
-            String sTask = messageData.getText1();
-            String sTime = messageData.getText2();
-
-            Games game = new Games();
-
-            if(sTask.equalsIgnoreCase("engaged") || sTask.equalsIgnoreCase("transition")) {
-                game.setCat("00" + sTask);
-            }
-            else {
-                game.setCat("00task");
-            }
-
-            game.setSubcat("");
-            game.setContent("dun: " + sTask);
-            game.setPts(Integer.valueOf(sTime));
-            game.setTimestamp(Calendar.getInstance());
-
-            DatabaseHelper.getInstance().getHelper(GamesHelper.class).createOrUpdate(game);
-
-            if(!sTask.equalsIgnoreCase("engaged")) {
-                List<SearchEntry> keys = new ArrayList<SearchEntry>();
-                keys.add(new SearchEntry(SearchEntry.Type.STRING, "category", SearchEntry.Search.EQUAL, "ontrack"));
-                keys.add(new SearchEntry(SearchEntry.Type.STRING, "subcategory", SearchEntry.Search.EQUAL, "Toda"));
-                keys.add(new SearchEntry(SearchEntry.Type.STRING, "message", SearchEntry.Search.EQUAL, sTask));
-                DatabaseHelper.getInstance().getHelper(ScheduleHelper.class).delete(keys);
-            }
         }
         else if(event.getPath().equalsIgnoreCase("/prepare-ack1")) {
             byte[] inBytesData = event.getData();

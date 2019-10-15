@@ -189,6 +189,21 @@ public class Database extends SQLiteOpenHelper {
 				",\"" + sTimWhen + "\"" +
 				")");
 		db.close();
+
+		EventData eventData = new EventData();
+		eventData.setDate(sDate);
+		eventData.setName(sName);
+		eventData.setTimDur(String.valueOf(iMin));
+		eventData.setPtsVal(String.valueOf(0));
+		eventData.setImp(String.valueOf(0));
+		eventData.setImpDets("");
+		eventData.setDtTimStr(sDate + " " + sTimWhen);
+		eventData.setTimEnd(sTimWhen);
+
+		final String eventDataString = eventData.toJsonString();
+		WearMessage wearMessage = new WearMessage(context);
+		wearMessage.sendData("/done-event", eventDataString);
+
 	}
 
 	public void doneEvent(String sDate,
@@ -205,24 +220,8 @@ public class Database extends SQLiteOpenHelper {
 		int numRowImpul = cursorImpul.getCount();
 		iTotImp = numRowImpul;
 
+		//!!! should be removed from EventData
 		String sImpDets = "";
-
-		/*
-		if (numRowImpul==0) //there is nothing
-		{
-		}
-		else
-		{
-			while (cursorImpul.moveToNext())
-			{
-				iTotImp = iTotImp + 1;
-
-				// takes too long and this is useless info
-				//sImpDets = sImpDets + ">|<" + cursorImpul.getString(2) + " - " + cursorImpul.getString(1);
-			}
-			cursorImpul.close();
-		}
-		*/
 
 		EventData eventData = new EventData();
 		eventData.setDate(sDate);
@@ -238,19 +237,6 @@ public class Database extends SQLiteOpenHelper {
 		WearMessage wearMessage = new WearMessage(context);
 		wearMessage.sendData("/done-event", eventDataString);
 
-/*
-		SQLiteDatabase db = getWritableDatabase();
-
-		db.execSQL("INSERT INTO task (task,timAct,timReq,timWhen) VALUES ("
-				+ "\"" + sTask + "\""
-				+ "," + String.valueOf(iCurTaskTimAct)
-				+ "," + String.valueOf(iCurTaskTimReq)
-				+ "," + String.valueOf(iTimWhen) + ")");
-
-		db.close();
-
- */
-
 	}
 
 	public String[] summaryStats(String sTrans, int iTotMin) {
@@ -259,6 +245,10 @@ public class Database extends SQLiteOpenHelper {
 		db.execSQL("CREATE TABLE statsTrans ( id INTEGER PRIMARY KEY AUTOINCREMENT," +
 				"name VARCHAR(20), min INTEGER, impul INTEGER, count INTEGER);");
 		*/
+
+		// returns ArrayList lRet to be displayed
+		// statsTrans holds avgMin and avgImpul (see abov)
+		// lRet contains deviations from avg + impulses
 
 		List<String> lRet = new ArrayList<String>();
 

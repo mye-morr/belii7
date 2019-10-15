@@ -1,5 +1,9 @@
 package com.better_computer.habitaid;
 
+import android.app.WallpaperManager;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -25,6 +29,14 @@ public class WearableMessageListenerService extends WearableListenerService {
             String jsonString = new String(inBytesData);
             MessageData messageData = MessageData.toMessageData(jsonString);
             ActivityMessage.startActivity(this, messageData);
+        }
+        else if (event.getPath().equalsIgnoreCase("/no-time")) {
+            Context context = getApplicationContext();
+            ComponentName yourWatchFace = new ComponentName("com.better_computer.blankwatchface", "MyWatchFace");
+            Intent intent = new Intent(WallpaperManager.ACTION_LIVE_WALLPAPER_CHOOSER)
+                    .putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT, yourWatchFace)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
         }
         else if (event.getPath().equalsIgnoreCase("/set-timer")) {
             byte[] inBytesData = event.getData();

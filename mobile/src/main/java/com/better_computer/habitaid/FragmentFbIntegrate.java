@@ -17,7 +17,6 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -29,7 +28,6 @@ import com.better_computer.habitaid.data.DatabaseHelper;
 import com.better_computer.habitaid.data.SearchEntry;
 import com.better_computer.habitaid.data.core.ContentLog;
 import com.better_computer.habitaid.data.core.ContentLogHelper;
-import com.better_computer.habitaid.data.core.GamesHelper;
 import com.better_computer.habitaid.data.core.NonSched;
 import com.better_computer.habitaid.data.core.NonSchedHelper;
 import com.better_computer.habitaid.data.core.ScheduleHelper;
@@ -170,6 +168,7 @@ public class FragmentFbIntegrate extends AbstractBaseFragment {
 
         final Button btnTestPlayer = (Button) rootView.findViewById(R.id.btnTestPlayer);
         final Button btnPretendBoot = (Button) rootView.findViewById(R.id.btnPretendBoot);
+        final Button btnNoTime = (Button) rootView.findViewById(R.id.btnNoTime);
         final SeekBar fSeekBar = (SeekBar) rootView.findViewById(R.id.seekBar);
         final SeekBar fSeekBar2 = (SeekBar) rootView.findViewById(R.id.seekBar2);
         final ListView listViewContentLog = (ListView) rootView.findViewById(R.id.schedule_content_log);
@@ -291,10 +290,17 @@ public class FragmentFbIntegrate extends AbstractBaseFragment {
         btnPretendBoot.setOnClickListener(new View.OnClickListener() {
                                              @Override
                                              public void onClick(View view) {
-                                                 context.sendBroadcast(new Intent("mm.belii3.FAKE_BOOT"));
+             context.sendBroadcast(new Intent("mm.belii3.FAKE_BOOT"));
                                              }
         });
 
+        btnNoTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                WearMessage wearMessage = new WearMessage(context);
+                wearMessage.sendData("/no-time", "");
+            }
+        });
 
         fSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override

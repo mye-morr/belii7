@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">habitaid</string>
 
     <style name="HomeTheme" parent="@android:style/Theme.DeviceDefault">
@@ -17,4 +17,5 @@
     <string name="title_activity_activity2_lists">Activity2Lists</string>
     <string name="title_activity_input_task">ActivityInputTask</string>
 
+    <string name="chronometer_initial_format"><xliff:g id="initial-format">%s</xliff:g></string>
 </resources>

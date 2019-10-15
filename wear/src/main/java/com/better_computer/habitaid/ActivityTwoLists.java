@@ -162,7 +162,7 @@ public class ActivityTwoLists extends Activity{
                             myApp.bNewTask = true;
                             myApp.resetMissedPrompt();
 
-                            StopwatchUtil.resetTaskStartTime(getApplicationContext());
+                            StopwatchUtil.resetEventStartTime(getApplicationContext());
 
                             // old method
                             //db.addTimeSmTas(sCurTask, sMinutes);
