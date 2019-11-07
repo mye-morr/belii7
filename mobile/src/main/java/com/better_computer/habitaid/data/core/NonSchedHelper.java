@@ -12,16 +12,16 @@ public class NonSchedHelper extends AbstractHelper<NonSched>{
 
     public NonSchedHelper(Context context) {
         super(context);
-        this.tableName = "core_tbl_nonsched";
-        this.columns.add("cat TEXT");
-        this.columns.add("subcat TEXT");
+        this.tableName = "core_tbl_nonSched";
+        this.columns.add("cat VARCHAR(50)");
+        this.columns.add("subcat VARCHAR(50)");
         this.columns.add("wtcat INTEGER");
-        this.columns.add("subsub TEXT");
+        this.columns.add("subsub VARCHAR()");
         this.columns.add("iprio INTEGER");
-        this.columns.add("name TEXT");
-        this.columns.add("abbrev TEXT");
-        this.columns.add("content TEXT");
-        this.columns.add("notes TEXT");
+        this.columns.add("name VARCHAR(100)");
+        this.columns.add("abbrev VARCHAR(20)");
+        this.columns.add("content VARCHAR(500)");
+        this.columns.add("notes VARCHAR(100)");
     }
 
     @Override
@@ -46,4 +46,5 @@ public class NonSchedHelper extends AbstractHelper<NonSched>{
             update(nonSched);
         }
     }
+
 }

@@ -17,9 +17,18 @@ import java.util.Random;
 
 public class MyApplication extends Application {
 
+    /*
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        prefs.edit().putString("sCat" + sActiveFace, buttonsData.getCat())
+                    .putString("sDelimCaptions" + sActiveFace, buttonsData.getDelimCaptions())
+                    .putString("sDelimReplies" + sActiveFace, buttonsData.getDelimReplies())
+                    .putString("sDelimPoints" + sActiveFace, buttonsData.getDelimPoints())
+                    .commit();
+     */
+
+    private static final String CUR_SESH_NUM = "1";
     private static final String TIME_TASK_DUE = "TIME_TASK_DUE";
     private static final String TIME_WHIP_DUE = "TIME_MSG_DUE";
-    private static final String MIN_SESSION_ENGAGED = "MIN_SESSION_ENGAGED";
     private static final String NEXT_CARD_MSG = "NEXT_CARD_MSG";
     private static final String FRQ_ENCOURAGE = "FRQ_ENCOURAGE";
     private static final String PTS_CUR = "PTS_CUR";
@@ -35,20 +44,21 @@ public class MyApplication extends Application {
     private static int iCtrMissed = 0;
 
     public volatile static boolean bInDrill = false;
-    public volatile static boolean bNewRouti = false;
+    public volatile static boolean bNewTrans = false;
     public volatile static boolean bNewWork = false;
     public volatile static boolean bNewTask = false;
     public volatile static boolean bImpuls = false;
     public volatile static boolean bTimerTicking = false;
+    public volatile static boolean bJustPicked = false;
 
     public volatile static String sNewCycl = "offt";
     public volatile static String sCurEvent = "";
     public volatile static String sCurType = "";
     public volatile static int iCurTaskTimReq = 0;
     public volatile static long lTimerBase = 0;
+    public volatile static long lSeshNum = 0;
 
     public static long lCountdownNextLib = 5;
-    public static long lTimeTaskDue = 0;
     public static long lTimeWhipDue = 0;
 
     public static boolean bFirstLaunch = true;
@@ -79,12 +89,13 @@ public class MyApplication extends Application {
             bTimerTurnedOff = false;
         }
         else {
-            if (bNewWork || bNewTask) {
+            if (bNewTrans || bNewWork || bNewTask) {
                 if ((iCtrMissed > 15) &&
                         (iCtrMissed % 3 == 0)) {
 
                     iCtrMissed++;
 
+                    //!!! an impossible condition
                     if (iCtrMissed < 10) {
                         sMsg = prefs.getString("alert_msg_nag", "alert_msg_nag");
                         messageData.setText1(sMsg);
@@ -131,7 +142,8 @@ public class MyApplication extends Application {
                     //-1 - don't repeat
                     final int indexInPatternToRepeat = -1;
                     vibrator.vibrate(vibrationPattern, indexInPatternToRepeat);
-                } else {
+                }
+                else {
                     if (!bInDrill) {
                         lCountdownNextLib--;
 
@@ -170,8 +182,8 @@ public class MyApplication extends Application {
                             wearMessage = new WearMessage(getApplicationContext());
                             wearMessage.sendMessage("/fetch-next-card", "", "");
                             // wearmessage update swp from dynarray
-                        }
-                    }
+                        } // end of lCountdownNextLib
+                    } // !InDrill
                 } // end not in task
             }
 
@@ -179,6 +191,10 @@ public class MyApplication extends Application {
         }
         }
     };
+
+    public boolean isOnTimer() {
+        return bIsOnTimer;
+    }
 
     @SuppressLint("InvalidWakeLockTag")
     public void toggleTimer() {
@@ -243,33 +259,16 @@ public class MyApplication extends Application {
         prefs.edit().putLong(TIME_WHIP_DUE, lTimeDue).apply();
     }
 
-    public void resetTimeEngaged() {
+    public long getSeshCur() {
         Context applicationContext = ActivityButtons.getContextOfApplication();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext);
-
-        prefs.edit().putInt(MIN_SESSION_ENGAGED, 0).apply();
+        return prefs.getLong(CUR_SESH_NUM, 0);
     }
 
-    public void addTimeEngaged(int minEngaged) {
+    public void setSeshCur(long lSeshNum) {
         Context applicationContext = ActivityButtons.getContextOfApplication();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext);
-        int iMinEngaged = prefs.getInt(MIN_SESSION_ENGAGED, 0);
-        iMinEngaged += minEngaged;
-        prefs.edit().putInt(MIN_SESSION_ENGAGED, iMinEngaged).apply();
-    }
-
-    public void reduceTimeEngaged(int minDisengaged) {
-        Context applicationContext = ActivityButtons.getContextOfApplication();
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext);
-        int iMinEngaged = prefs.getInt(MIN_SESSION_ENGAGED, 0);
-        iMinEngaged -= minDisengaged;
-        prefs.edit().putInt(MIN_SESSION_ENGAGED, iMinEngaged).apply();
-    }
-
-    public int getTimeEngaged() {
-        Context applicationContext = ActivityButtons.getContextOfApplication();
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext);
-        return prefs.getInt(MIN_SESSION_ENGAGED, 0);
+        prefs.edit().putLong(CUR_SESH_NUM, lSeshNum).apply();
     }
 
     public int getPtsCur() {

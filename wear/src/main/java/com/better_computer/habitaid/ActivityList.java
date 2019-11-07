@@ -3,7 +3,9 @@ package com.better_computer.habitaid;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.wearable.view.BoxInsetLayout;
 import android.support.wearable.view.DismissOverlayView;
 import android.support.wearable.view.WatchViewStub;
@@ -42,8 +44,15 @@ public class ActivityList extends Activity{
     private static DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     private static DateFormat timeFormat = new SimpleDateFormat("HH:mm");
 
+    public static Context contextOfApplication;
+
     private PressedData pressedData;
     private Database db;
+    private SharedPreferences prefs;
+
+    public static Context getContextOfApplication() {
+        return contextOfApplication;
+    }
 
     public static final void startActivity(Context context) {
         Intent intent = new Intent(context, ActivityList.class);
@@ -56,6 +65,7 @@ public class ActivityList extends Activity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        contextOfApplication = getApplicationContext();
 
         pressedData = new PressedData();
 
@@ -92,87 +102,130 @@ public class ActivityList extends Activity{
                     @Override
                     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                         String sItem = mListViewMain.getItemAtPosition(i).toString();
+                        int iLenCaptionActive = sItem.length();
 
-                        if(sListName.equalsIgnoreCase("comrouti")) {
-                            // also resets the task start time
-                            ActivityInput.startActivity(getApplicationContext(), "comrouti", sItem, sxReplies[i]);
+                        String sSuffix = "";
+                        if (iLenCaptionActive > 1) {
+                            sSuffix = sItem.substring(iLenCaptionActive - 2);
                         }
-                        else if(sListName.equalsIgnoreCase("comwork")) {
-                            // also resets the task start time
-                            ActivityInput.startActivity(getApplicationContext(), "comwork", sItem, sxReplies[i]);
-                        }
-                        else if(sListName.equalsIgnoreCase("comtas")) {
-                            // also resets the task start time
-                            ActivityInput.startActivity(getApplicationContext(), "comtas", sItem, sxReplies[i]);
-                        }
-                        else if(sListName.equalsIgnoreCase("l0st")) {
-                            // also resets the task start time
-                            ActivityInput.startActivity(getApplicationContext(), "l0st", sItem, sxReplies[i]);
-                        }
-                        else if(sListName.equalsIgnoreCase("intf")
-                                || sListName.equalsIgnoreCase("spacd")
-                                || sListName.equalsIgnoreCase("dart")) {
+                        if (sSuffix.equalsIgnoreCase("->")) {
+                            sItem = sItem.substring(0, iLenCaptionActive - 3).trim();
 
-                            Calendar calNow = Calendar.getInstance();
+                            prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
-                            String sDate = dateFormat.format(calNow.getTime());
-                            String sTime = timeFormat.format(calNow.getTime());
+                            String sDelimElements = prefs.getString("0" + sItem.substring(0, iLenCaptionActive - 3), "");
+                            String sDelimPts = prefs.getString("0" + sItem + "_Pts", "");
+                            String sDelimReplies = prefs.getString("0" + sItem + "_Replies", "");
 
-                            db.doneTimDecr(sDate, sListName, parseInt(sItem), sTime);
-                            myApp.resetMissedPrompt();
-                            ActivityButtons.startActivity(getApplicationContext());
+                            // there are subitems for category
+                            if (sDelimElements.length() > 0) {
+
+                                Intent intent = new Intent(getApplicationContext(), ActivityList.class);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                                intent.putExtra("sListName", sListName); // keep the parent
+                                intent.putExtra("sDelimItems", sDelimElements);
+                                intent.putExtra("sDelimPts", sDelimPts);
+                                intent.putExtra("sReply", "");
+
+                                if (sDelimReplies.length() > 0) {
+                                    intent.putExtra("sDelimReplies", sDelimReplies);
+                                }
+                                startActivity(intent);
+                            }
                         }
                         else {
-                            if (!bNoReplies) {
-                                String sFoo = sxReplies[i].trim();
-                                if (sFoo.length() > 0) {
-                                    Toast.makeText(getApplicationContext(), sFoo, Toast.LENGTH_LONG).show();
+                                String sBufReply = "";
+                                if (!bNoReplies) {
+                                    sBufReply = sxReplies[i];
+                                }
+
+                                if (sListName.equalsIgnoreCase("comtrans")) {
+                                    // also resets the task start time
+                                    ActivityInput.startActivity(getApplicationContext(), "comtrans", sItem, sBufReply);
+                                } else if (sListName.equalsIgnoreCase("comwork")) {
+                                    // also resets the task start time
+                                    ActivityInput.startActivity(getApplicationContext(), "comwork", sItem, sBufReply);
+                                } else if (sListName.equalsIgnoreCase("comtas")) {
+                                    // also resets the task start time
+                                    ActivityInput.startActivity(getApplicationContext(), "comtas", sItem, sBufReply);
+                                } else if (sListName.equalsIgnoreCase("l0st")) {
+                                    // also resets the task start time
+                                    ActivityInput.startActivity(getApplicationContext(), "l0st", sItem, sBufReply);
+                                } else if (sListName.equalsIgnoreCase("intf")
+                                        || sListName.equalsIgnoreCase("spacd")
+                                        || sListName.equalsIgnoreCase("dart")) {
+
+                                    Calendar calNow = Calendar.getInstance();
+
+                                    String sDate = dateFormat.format(calNow.getTime());
+                                    String sTime = timeFormat.format(calNow.getTime());
+
+
+                                    db.doneEffic(
+                                            myApp.getSeshCur()
+                                            ,sDate
+                                            ,"l0st"
+                                            ,parseInt(sItem)
+                                            ,sListName
+                                            ,0
+                                    );
+
+                                    //db.doneTimDecr(sDate, sListName, parseInt(sItem), sTime);
+
+
+                                    myApp.resetMissedPrompt();
+                                    ActivityButtons.startActivity(getApplicationContext());
+                                } else {
+                                    if (!bNoReplies) {
+                                        String sFoo = sxReplies[i].trim();
+                                        if (sFoo.length() > 0) {
+                                            Toast.makeText(getApplicationContext(), sFoo, Toast.LENGTH_LONG).show();
+                                        }
+                                    }
+
+                                    long passedTime = StopwatchUtil.getEventPassedTime(getApplicationContext());
+                                    long passedSecs = passedTime / 1000;
+                                    int iPassedMin = (int) Math.round(passedSecs / 60.0);
+
+                                    Calendar calNow = Calendar.getInstance();
+
+                                    String sDate = dateFormat.format(calNow.getTime());
+                                    String sTime = timeFormat.format(calNow.getTime());
+
+                        /*
+                        if(sReply.equalsIgnoreCase("numIncr"))
+                        {
+                            db.doneGooha(sDate, sListName, sTime);
+                        }
+                        else if (sReply.equalsIgnoreCase("numDecr")) {
+                            db.doneBadha(sDate, sListName, sTime);
+                        }
+                        else {
+                        */
+
+                                    // impulses would never happen in a list
+                                    // either its a point-value or an event
+                                    int iCheck = Integer.parseInt(sxPts[i]);
+                                    if (iCheck == 0) {
+                                        db.doneEvent(
+                                                sDate, sItem,
+                                                0,
+                                                iCheck,
+                                                StopwatchUtil.getDateTimeEventStarted(getApplicationContext()),
+                                                sTime
+                                        );
+                                    } else {
+                                        db.addPts(sDate, iCheck, sItem, iPassedMin);
+
+                                        // ^ more anxieties
+                                        // myApp.addPtsCur(iCheck);
+                                    }
+
+                                    myApp.resetMissedPrompt();
+                                    ActivityButtons.startActivity(getApplicationContext());
                                 }
                             }
-
-                            long passedTime = StopwatchUtil.getEventPassedTime(getApplicationContext());
-                            long passedSecs = passedTime / 1000;
-                            int iPassedMin = (int) Math.round(passedSecs / 60.0);
-
-                            Calendar calNow = Calendar.getInstance();
-
-                            String sDate = dateFormat.format(calNow.getTime());
-                            String sTime = timeFormat.format(calNow.getTime());
-
-                            /*
-                            if(sReply.equalsIgnoreCase("numIncr"))
-                            {
-                                db.doneGooha(sDate, sListName, sTime);
-                            }
-                            else if (sReply.equalsIgnoreCase("numDecr")) {
-                                db.doneBadha(sDate, sListName, sTime);
-                            }
-                            else {
-                            */
-
-                            // impulses would never happen in a list
-                            // either its a point-value or an event
-                            int iCheck = Integer.parseInt(sxPts[i]);
-                            if (iCheck == 0) {
-                                db.doneEvent(
-                                        sDate, sItem,
-                                        0,
-                                        iCheck,
-                                        StopwatchUtil.getDateTimeEventStarted(getApplicationContext()),
-                                        sTime
-                                );
-                            }
-                            else {
-                                db.addPts(sDate, iCheck, sItem, iPassedMin);
-
-                                // ^ more anxieties
-                                // myApp.addPtsCur(iCheck);
-                            }
-
-                            myApp.resetMissedPrompt();
-                            ActivityButtons.startActivity(getApplicationContext());
                         }
-                    }
                 });
 
                 mContainerView = (BoxInsetLayout) findViewById(R.id.container); // This is your existing top level RelativeLayout

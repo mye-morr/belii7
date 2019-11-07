@@ -123,8 +123,8 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/btnPretendBoot"
-            android:text="Pretend Boot"
+            android:id="@+id/btnSyncVars"
+            android:text="Sync Vars"
             />
         <Button
             android:layout_width="wrap_content"

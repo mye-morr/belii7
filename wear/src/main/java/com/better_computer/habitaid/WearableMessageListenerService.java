@@ -89,10 +89,10 @@ public class WearableMessageListenerService extends WearableListenerService {
             String sReplies = libraryData.getDelimReplies();
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-            prefs.edit().putString(sCat, sElements).commit();
-            prefs.edit().putString(sCat+"_Pts", sPts).commit();
+            prefs.edit().putString(sCat, sElements).apply();
+            prefs.edit().putString(sCat+"_Pts", sPts).apply();
             if(sReplies.split(";").length > 0) {
-                prefs.edit().putString(sCat + "_Replies", sReplies).commit();
+                prefs.edit().putString(sCat + "_Replies", sReplies).apply();
             }
         }
         else if(event.getPath().equalsIgnoreCase("/set-library")) {

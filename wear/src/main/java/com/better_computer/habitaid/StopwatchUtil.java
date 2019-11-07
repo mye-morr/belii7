@@ -8,6 +8,9 @@ public class StopwatchUtil {
 
     private static final String STOPWATCH_LAST_TOUCHED_TIME = "StopwatchUtil_STOPWATCH_LAST_TOUCHED_TIME";
 
+    private static final String DATE_TODAY_STARTED = "DATE_TODAY_STARTED";
+    private static final String DATETIME_TODAY_STARTED = "DATETIME_TODAY_STARTED";
+
     private static final String DATE_TRANS_STARTED = "DATE_TRANS_STARTED";
     private static final String DATETIME_TRANS_STARTED = "DATETIME_TRANS_STARTED";
 
@@ -16,54 +19,77 @@ public class StopwatchUtil {
 
     private static final String TRANS_START_TIME = "StopwatchUtil_TRANS_START_TIME";
     private static final String TRANS_STOP_TIME = "StopwatchUtil_TRANS_STOP_TIME";
-
     private static final String EVENT_START_TIME = "StopwatchUtil_EVENT_START_TIME";
     private static final String EVENT_STOP_TIME = "StopwatchUtil_EVENT_STOP_TIME";
-
     private static final String ENGAGED_START_TIME = "StopwatchUtil_ENGAGED_START_TIME";
-    private static final String ENGAGED_LAST_STATUS = "StopwatchUtil_ENGAGED_START_STATUS";
     private static final String ENGAGED_STOP_TIME = "StopwatchUtil_ENGAGED_STOP_TIME";
 
-    public static long resetTransStartTime(Context context) {
+    private static final String ENGAGED_LAST_STATUS = "StopwatchUtil_ENGAGED_START_STATUS";
+
+    private static void setTime(Context context, String sConst, long period) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        sp.edit().putLong(sConst, period).apply();
+    }
+
+    public static long resetStartTime(Context context, String sConstStart, String sConstStop) {
         long time = System.currentTimeMillis();
-        setTransStartTime(context, time);
-        setTransStopTime(context, -1);
+        setTime(context,sConstStart,time);
+        setTime(context,sConstStop,-1);
         return time;
     }
 
-    public static long resetEventStartTime(Context context) {
-        long time = System.currentTimeMillis();
-        setEventStartTime(context, time);
-        setEventStopTime(context, -1);
-        return time;
+    private static long getTime(Context context, String sConst) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        return sp.getLong(sConst, -1);
     }
+
+    public static long getPassedTime(Context context, String sConstStart, String sConstStop) {
+        long startTime = getTime(context, sConstStart);
+        long stopTime = getTime(context, sConstStop);
+        if (startTime < 0 && stopTime < 0) {
+            // init condition
+            long current = System.currentTimeMillis();
+            setTime(context,sConstStart,current);
+            setTime(context,sConstStop,current);
+            return 0;
+        } else if (stopTime < 0) {
+            // still running
+            long current = System.currentTimeMillis();
+            return current - getTime(context, sConstStart);
+        } else {
+            return stopTime - getTime(context, sConstStart);
+        }
+    }
+
+    public static void setTransStartTime(Context context, long period) { setTime(context,TRANS_START_TIME,period); }
+    public static void setTransStopTime(Context context, long period) { setTime(context,TRANS_STOP_TIME,period); }
+    public static void setEventStartTime(Context context, long period) { setTime(context,EVENT_START_TIME,period); }
+    public static void setEventStopTime(Context context, long period) { setTime(context,EVENT_STOP_TIME,period); }
+    public static void setEngagedStartTime(Context context, long period) { setTime(context,ENGAGED_START_TIME,period); }
+    public static void setEngagedStopTime(Context context, long period) { setTime(context,ENGAGED_STOP_TIME,period); }
+    public static void setStopwatchLastTouchedTime(Context context, long period) { setTime(context,STOPWATCH_LAST_TOUCHED_TIME,period); }
+
+    public static long resetTransStartTime(Context context) { return resetStartTime(context, TRANS_START_TIME, TRANS_STOP_TIME); }
+    public static long resetEventStartTime(Context context) { return resetStartTime(context, EVENT_START_TIME, EVENT_STOP_TIME); }
+
+    private static long getTransStartTime(Context context) { return getTime(context, TRANS_START_TIME);}
+    private static long getTransStopTime(Context context) { return getTime(context, TRANS_STOP_TIME);}
+    private static long getEventStartTime(Context context) { return getTime(context, EVENT_START_TIME);}
+    private static long getEventStopTime(Context context) { return getTime(context, EVENT_STOP_TIME);}
+    private static long getEngagedStartTime(Context context) { return getTime(context, ENGAGED_START_TIME);}
+    private static long getEngagedStopTime(Context context) { return getTime(context, ENGAGED_STOP_TIME);}
+    public static long getStopwatchLastTouchedTime(Context context) { return getTime(context, STOPWATCH_LAST_TOUCHED_TIME);}
+
+    public static long getTransPassedTime(Context context) { return getPassedTime(context, TRANS_START_TIME, TRANS_STOP_TIME);}
+    public static long getEventPassedTime(Context context) { return getPassedTime(context, EVENT_START_TIME, EVENT_STOP_TIME);}
+    public static long getEngagedPassedTime(Context context) { return getPassedTime(context, ENGAGED_START_TIME, ENGAGED_STOP_TIME);}
+
 
     public static long resetEngagedStartTime(Context context, String desc) {
         long time = System.currentTimeMillis();
         setEngagedStartTime(context, time, desc);
         setEngagedStopTime(context, -1);
         return time;
-    }
-
-    private static void setTransStartTime(Context context, long period) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        sp.edit().putLong(TRANS_START_TIME, period).apply();
-    }
-
-    private static void setEventStartTime(Context context, long period) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        sp.edit().putLong(EVENT_START_TIME, period).apply();
-    }
-
-    public static void setStopwatchLastTouchedTime(Context context, long period) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        sp.edit().putLong(STOPWATCH_LAST_TOUCHED_TIME, period).apply();
-    }
-
-    private static void setEngagedStartTime(Context context, long period) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        sp.edit()
-                .putLong(ENGAGED_START_TIME, period).apply();
     }
 
     private static void setEngagedStartTime(Context context, long period, String desc) {
@@ -79,115 +105,11 @@ public class StopwatchUtil {
         return sp.getString(ENGAGED_LAST_STATUS, "");
     }
 
-    private static long getTransStartTime(Context context) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        return sp.getLong(TRANS_START_TIME, -1);
-    }
-
-    private static long getEventStartTime(Context context) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        return sp.getLong(EVENT_START_TIME, -1);
-    }
-
-    public static long getStopwatchLastTouchedTime(Context context) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        return sp.getLong(STOPWATCH_LAST_TOUCHED_TIME, -1);
-    }
-
-    private static long getEngagedStartTime(Context context) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        return sp.getLong(ENGAGED_START_TIME, -1);
-    }
-
-    public static void setTransStopTime(Context context, long period) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        sp.edit().putLong(TRANS_STOP_TIME, period).apply();
-    }
-
-    public static void setEventStopTime(Context context, long period) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        sp.edit().putLong(EVENT_STOP_TIME, period).apply();
-    }
-
-    public static void setEngagedStopTime(Context context, long period) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        sp.edit().putLong(ENGAGED_STOP_TIME, period).apply();
-    }
-
-    public static long getTransStopTime(Context context) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        return sp.getLong(TRANS_STOP_TIME, -1);
-    }
-
-    public static long getEventStopTime(Context context) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        return sp.getLong(EVENT_STOP_TIME, -1);
-    }
-
-    public static long getEngagedStopTime(Context context) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        return sp.getLong(ENGAGED_STOP_TIME, -1);
-    }
-
-    public static long getTransPassedTime(Context context) {
-        long startTime = getTransStartTime(context);
-        long stopTime = getTransStopTime(context);
-        if (startTime < 0 && stopTime < 0) {
-            // init condition
-            long current = System.currentTimeMillis();
-            setTransStartTime(context, current);
-            setTransStopTime(context, current);
-            return 0;
-        } else if (stopTime < 0) {
-            // still running
-            long current = System.currentTimeMillis();
-            return current - getTransStartTime(context);
-        } else {
-            return stopTime - getTransStartTime(context);
-        }
-    }
-
-    public static long getEventPassedTime(Context context) {
-        long startTime = getEventStartTime(context);
-        long stopTime = getEventStopTime(context);
-        if (startTime < 0 && stopTime < 0) {
-            // init condition
-            long current = System.currentTimeMillis();
-            setEventStartTime(context, current);
-            setEventStopTime(context, current);
-            return 0;
-        } else if (stopTime < 0) {
-            // still running
-            long current = System.currentTimeMillis();
-            return current - getEventStartTime(context);
-        } else {
-            return stopTime - getEventStartTime(context);
-        }
-    }
-
     public static long getEngagedLastTouchPassedTime(Context context) {
         long startTime = getStopwatchLastTouchedTime(context);
 
         long current = System.currentTimeMillis();
         return current - startTime;
-    }
-
-    public static long getEngagedPassedTime(Context context) {
-        long startTime = getEngagedStartTime(context);
-        long stopTime = getEngagedStopTime(context);
-        if (startTime < 0 && stopTime < 0) {
-            // init condition
-            long current = System.currentTimeMillis();
-            setEngagedStartTime(context, current);
-            setEngagedStopTime(context, current);
-            return 0;
-        } else if (stopTime < 0) {
-            // still running
-            long current = System.currentTimeMillis();
-            return current - getEngagedStartTime(context);
-        } else {
-            return stopTime - getEngagedStartTime(context);
-        }
     }
 
     public static void setDateTransStarted(String sDate, String sDateTime) {
@@ -197,16 +119,6 @@ public class StopwatchUtil {
         prefs.edit()
                 .putString(DATE_TRANS_STARTED, sDate)
                 .putString(DATETIME_TRANS_STARTED, sDateTime)
-                .apply();
-    }
-
-    public static void setDateEventStarted(String sDate, String sDateTime) {
-        Context applicationContext = ActivityButtons.getContextOfApplication();
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext);
-
-        prefs.edit()
-                .putString(DATE_EVENT_STARTED, sDate)
-                .putString(DATETIME_EVENT_STARTED, sDateTime)
                 .apply();
     }
 
@@ -220,6 +132,16 @@ public class StopwatchUtil {
         return sp.getString(DATETIME_TRANS_STARTED, "");
     }
 
+    public static void setDateEventStarted(String sDate, String sDateTime) {
+        Context applicationContext = ActivityButtons.getContextOfApplication();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext);
+
+        prefs.edit()
+                .putString(DATE_EVENT_STARTED, sDate)
+                .putString(DATETIME_EVENT_STARTED, sDateTime)
+                .apply();
+    }
+
     public static String getDateEventStarted(Context context) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         return sp.getString(DATE_EVENT_STARTED, "");
@@ -229,4 +151,25 @@ public class StopwatchUtil {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         return sp.getString(DATETIME_EVENT_STARTED, "");
     }
+
+    public static void setDateTodayStarted(String sDate, String sDateTime) {
+        Context applicationContext = ActivityButtons.getContextOfApplication();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext);
+
+        prefs.edit()
+                .putString(DATE_TODAY_STARTED, sDate)
+                .putString(DATETIME_TODAY_STARTED, sDateTime)
+                .apply();
+    }
+
+    public static String getDateTodayStarted(Context context) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        return sp.getString(DATE_TODAY_STARTED, "");
+    }
+
+    public static String getDateTimeTodayStarted(Context context) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        return sp.getString(DATETIME_TODAY_STARTED, "");
+    }
+
 }

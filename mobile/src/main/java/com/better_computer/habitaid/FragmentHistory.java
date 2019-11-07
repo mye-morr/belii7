@@ -64,9 +64,11 @@ public class FragmentHistory extends AbstractBaseFragment {
 
         final View dialog = rootView;
 
+        /*
         List<Message> messages = (List<Message>)(List<?>) DatabaseHelper.getInstance().getHelper(MessageHelper.class).findAll();
         Collections.reverse(messages);
         ((ListView) dialog.findViewById(R.id.message_list)).setAdapter(new MessageListAdapter(context, messages));
+        */
 
         List<Events> events = (List<Events>)(List<?>) DatabaseHelper.getInstance().getHelper(EventsHelper.class).findAll();
         Collections.reverse(events);

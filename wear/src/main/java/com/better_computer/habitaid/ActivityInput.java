@@ -24,6 +24,8 @@ import static java.lang.Integer.parseInt;
 
 public class ActivityInput extends WearableActivity
 {
+    public static Context contextOfApplication;
+
     private static DateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
     private static DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     private static DateFormat timeFormat = new SimpleDateFormat("HH:mm");
@@ -120,7 +122,9 @@ public class ActivityInput extends WearableActivity
         sPurpose = getIntent().getStringExtra("Purpose");
 
         final MyApplication myApp = (MyApplication)getApplication();
-        db = new Database(getApplicationContext());
+
+        contextOfApplication = getApplicationContext();
+        db = new Database(contextOfApplication);
 
         pressedData = new PressedData();
 
@@ -157,13 +161,13 @@ public class ActivityInput extends WearableActivity
 
         mTvMainTask.setText(sPurpose);
 
-        if(sPurpose.equalsIgnoreCase("comrouti")) {
+        if(sPurpose.equalsIgnoreCase("comtrans")) {
             String sTask = getIntent().getStringExtra("Task");
             sType = getIntent().getStringExtra("Type");
             mTvLetters.setText(sTask);
             bTimes = true;
 
-            sPurpose = "new_routi";
+            sPurpose = "new_trans";
         }
         else if(sPurpose.equalsIgnoreCase("comwork")) {
             String sTask = getIntent().getStringExtra("Task");
@@ -240,23 +244,47 @@ public class ActivityInput extends WearableActivity
                 myApp.setTimeWhipDue(System.currentTimeMillis()
                         + iIncr * 60 * 1000);
             }
-            else if(sPurpose.equalsIgnoreCase("new_routi")) {
+            else if(sPurpose.equalsIgnoreCase("new_trans")) {
 
                 Calendar cNow = Calendar.getInstance();
+                long passedTime = StopwatchUtil.getTransPassedTime(contextOfApplication);
+                long passedSecs = passedTime / 1000;
+                int iMinPassed = (int) Math.round(passedSecs / 60.0);
+                db.doneEvent(
+                        StopwatchUtil.getDateTransStarted(contextOfApplication),
+                        "trans" + myApp.sCurEvent,
+                        iMinPassed,
+                        0,
+                        StopwatchUtil.getDateTimeTransStarted(contextOfApplication),
+                        timeFormat.format(cNow.getTime()));
+
                 StopwatchUtil.resetEventStartTime(getApplicationContext());
                 StopwatchUtil.setDateEventStarted(
                         dateFormat.format(cNow.getTime()),
                         dateTimeFormat.format(cNow.getTime()));
 
-                myApp.bNewRouti = true;
+                myApp.bNewTrans = true;
                 myApp.sCurEvent = sTask;
                 myApp.sCurType = sType;
+                myApp.bJustPicked = true;
 
                 myApp.iCurTaskTimReq = Integer.valueOf(sMinutes);
             }
             else if(sPurpose.equalsIgnoreCase("new_work")) {
 
                 Calendar cNow = Calendar.getInstance();
+
+                long passedTime = StopwatchUtil.getTransPassedTime(contextOfApplication);
+                long passedSecs = passedTime / 1000;
+                int iMinPassed = (int) Math.round(passedSecs / 60.0);
+                db.doneEvent(
+                        StopwatchUtil.getDateTransStarted(contextOfApplication),
+                        "trans" + myApp.sCurEvent,
+                        iMinPassed,
+                        0,
+                        StopwatchUtil.getDateTimeTransStarted(contextOfApplication),
+                        timeFormat.format(cNow.getTime()));
+
                 StopwatchUtil.resetEventStartTime(getApplicationContext());
                 StopwatchUtil.setDateEventStarted(
                         dateFormat.format(cNow.getTime()),
@@ -265,11 +293,24 @@ public class ActivityInput extends WearableActivity
                 myApp.bNewWork = true;
                 myApp.sCurEvent = sTask;
                 myApp.sCurType = sType;
+                myApp.bJustPicked = true;
 
                 myApp.iCurTaskTimReq = Integer.valueOf(sMinutes);
             }
             else if(sPurpose.equalsIgnoreCase("new_task")) {
                 Calendar cNow = Calendar.getInstance();
+
+                long passedTime = StopwatchUtil.getTransPassedTime(contextOfApplication);
+                long passedSecs = passedTime / 1000;
+                int iMinPassed = (int) Math.round(passedSecs / 60.0);
+                db.doneEvent(
+                        StopwatchUtil.getDateTransStarted(contextOfApplication),
+                        "trans" + myApp.sCurEvent,
+                        iMinPassed,
+                        0,
+                        StopwatchUtil.getDateTimeTransStarted(contextOfApplication),
+                        timeFormat.format(cNow.getTime()));
+
                 StopwatchUtil.resetEventStartTime(getApplicationContext());
                 StopwatchUtil.setDateEventStarted(
                         dateFormat.format(cNow.getTime()),
@@ -278,6 +319,7 @@ public class ActivityInput extends WearableActivity
                 myApp.bNewTask = true;
                 myApp.sCurEvent = sTask;
                 myApp.sCurType = sType;
+                myApp.bJustPicked = true;
 
                 myApp.iCurTaskTimReq = Integer.valueOf(sMinutes);
 
@@ -291,20 +333,33 @@ public class ActivityInput extends WearableActivity
                     sMinutes = "1";
                 }
 
-                long passedTime = StopwatchUtil.getEventPassedTime(getApplicationContext());
-                long passedSecs = passedTime / 1000;
-                int iPassedMin = (int) Math.round(passedSecs / 60.0);
+                Calendar cNow = Calendar.getInstance();
+                StopwatchUtil.resetEventStartTime(getApplicationContext());
+                StopwatchUtil.setDateEventStarted(
+                        dateFormat.format(cNow.getTime()),
+                        dateTimeFormat.format(cNow.getTime()));
 
-                /*
-                db.doneTask(
-                        sTask,
-                        parseInt(sMinutes),
-                        parseInt(sMinutes),
-                        iPassedMin - parseInt(sMinutes)
-                );
-                */
+                StopwatchUtil.resetTransStartTime(getApplicationContext());
+                StopwatchUtil.setDateTransStarted(
+                        dateFormat.format(cNow.getTime()),
+                        dateTimeFormat.format(cNow.getTime()));
 
-                myApp.addPtsCur(parseInt(sMinutes));
+                // doesn't always work??
+                db.doneEvent(
+                        StopwatchUtil.getDateEventStarted(contextOfApplication),
+                        "retro: " + sTask,
+                        parseInt(sMinutes),
+                        0,
+                        StopwatchUtil.getDateTimeEventStarted(contextOfApplication),
+                        timeFormat.format(cNow.getTime()));
+
+                db.doneEffic(
+                        myApp.getSeshCur()
+                        ,dateFormat.format(cNow.getTime())
+                        ,"engaged"
+                        ,parseInt(sMinutes)
+                        ,"retro: " + sTask
+                        , 0);
             }
             else if(sPurpose.equalsIgnoreCase("imme")) {
                 if(sMinutes.length()==0) {

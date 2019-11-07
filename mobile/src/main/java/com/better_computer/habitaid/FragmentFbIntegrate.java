@@ -33,6 +33,8 @@ import com.better_computer.habitaid.data.core.NonSchedHelper;
 import com.better_computer.habitaid.data.core.ScheduleHelper;
 import com.better_computer.habitaid.form.schedule.ContentLogListAdapter;
 import com.better_computer.habitaid.service.PlayerService;
+import com.better_computer.habitaid.share.LibraryData;
+import com.better_computer.habitaid.share.SerializedArray;
 import com.better_computer.habitaid.share.WearMessage;
 import com.better_computer.habitaid.util.DynaArray;
 import com.better_computer.habitaid.util.MarginDecoration;
@@ -167,7 +169,7 @@ public class FragmentFbIntegrate extends AbstractBaseFragment {
         stopwatchView = (TextView) rootView.findViewById(R.id.stopwatch);
 
         final Button btnTestPlayer = (Button) rootView.findViewById(R.id.btnTestPlayer);
-        final Button btnPretendBoot = (Button) rootView.findViewById(R.id.btnPretendBoot);
+        final Button btnSyncVars = (Button) rootView.findViewById(R.id.btnSyncVars);
         final Button btnNoTime = (Button) rootView.findViewById(R.id.btnNoTime);
         final SeekBar fSeekBar = (SeekBar) rootView.findViewById(R.id.seekBar);
         final SeekBar fSeekBar2 = (SeekBar) rootView.findViewById(R.id.seekBar2);
@@ -286,11 +288,16 @@ public class FragmentFbIntegrate extends AbstractBaseFragment {
 
         });
 
+// pretend boot
+// context.sendBroadcast(new Intent("mm.belii3.FAKE_BOOT"));
 
-        btnPretendBoot.setOnClickListener(new View.OnClickListener() {
+        btnSyncVars.setOnClickListener(new View.OnClickListener() {
                                              @Override
                                              public void onClick(View view) {
-             context.sendBroadcast(new Intent("mm.belii3.FAKE_BOOT"));
+            syncSingleLibrary("0numbers");
+            syncSingleLibrary("0comtrans");
+            syncSingleLibrary("0comtas");
+            syncSingleLibrary("0comtrans");
                                              }
         });
 
@@ -625,6 +632,70 @@ public class FragmentFbIntegrate extends AbstractBaseFragment {
             return null;
         }
     }
+
+    public void syncSingleLibrary(String sCat) {
+
+        String[] sxElementsReplies;
+        String sElements, sPts, sReplies;
+
+        NonSchedHelper nonSchedHelper = DatabaseHelper.getInstance().getHelper(NonSchedHelper.class);
+        sxElementsReplies = getCatElements(nonSchedHelper, sCat);
+        sElements = sxElementsReplies[0];
+        sPts = sxElementsReplies[1];
+        sReplies = sxElementsReplies[2];
+
+        LibraryData libraryData = new LibraryData();
+        libraryData.setDelimCat(sCat);
+        libraryData.setDelimElements(sElements);
+        libraryData.setDelimPoints(sPts);
+        libraryData.setDelimReplies(sReplies);
+
+        WearMessage wearMessage = new WearMessage(context);
+        wearMessage.sendLibrary("/set-single-library", libraryData);
+    }
+
+    public String[] getCatElements(NonSchedHelper nonSchedHelper, String sCat) {
+        String[] sxRet = new String[3];
+
+        int idx2;
+
+        List<SearchEntry> keys = new ArrayList<SearchEntry>();
+        keys.add(new SearchEntry(SearchEntry.Type.STRING, "cat", SearchEntry.Search.EQUAL, sCat));
+        List<NonSched> listNs = (List<NonSched>)(List<?>)nonSchedHelper.find(keys, "ORDER BY iprio");
+
+        String[] sxElements = new String[listNs.size()];
+        String[] sxReplies = new String[listNs.size()];
+        String[] sxPoints = new String[listNs.size()];
+
+        idx2= 0;
+        for (NonSched nonSched: listNs) {
+            String sName = nonSched.getName();
+            sxElements[idx2] = sName;
+
+            sxPoints[idx2] = "0";
+
+            int iBuf, iBuf2;
+            if (sName.contains("(")) {
+                iBuf = sName.indexOf("(");
+                iBuf2 = sName.indexOf(")");
+                sxPoints[idx2] = sName.substring(iBuf + 1, iBuf2).trim();
+            }
+
+            sxReplies[idx2] = nonSched.getContent();
+            idx2++;
+        }
+
+        SerializedArray saBuf = new SerializedArray(sxElements);
+        SerializedArray saBuf2 = new SerializedArray(sxPoints);
+        SerializedArray saBuf3 = new SerializedArray(sxReplies);
+
+        sxRet[0] = saBuf.getSerialString(";");
+        sxRet[1] = saBuf2.getSerialString(";");
+        sxRet[2] = saBuf3.getSerialString(";");
+
+        return sxRet;
+    }
+
 }
 
 /*

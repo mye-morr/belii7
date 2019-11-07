@@ -58,33 +58,44 @@ public class Database extends SQLiteOpenHelper {
 				"sDtTimStr VARCHAR(20), sTimEnd VARCHAR(10));");
 		*/
 
-		db.execSQL("CREATE TABLE task ( id INTEGER PRIMARY KEY AUTOINCREMENT," +
-				"task VARCHAR(20), timAct INTEGER, " +
-				"timReq INTEGER, timWhen INTEGER);");
+		db.execSQL("CREATE TABLE statsEffic ( id INTEGER PRIMARY KEY AUTOINCREMENT," +
+				"sesh INTEGER" +
+				",dat VARCHAR(10), typ VARCHAR(10), min INTEGER, event VARCHAR(20), wasTimed INTEGER);");
 		db.execSQL("CREATE TABLE statsTrans ( id INTEGER PRIMARY KEY AUTOINCREMENT," +
 				"name VARCHAR(20), min INTEGER, impul INTEGER, count INTEGER);");
-		db.execSQL("CREATE TABLE timDecr ( id INTEGER PRIMARY KEY AUTOINCREMENT," +
-				"date VARCHAR(10), name VARCHAR(20), min INTEGER, timWhen VARCHAR(5));");
-		db.execSQL("CREATE TABLE timIncr ( id INTEGER PRIMARY KEY AUTOINCREMENT," +
-				"date VARCHAR(10), name VARCHAR(20), min INTEGER, timWhen VARCHAR(5));");
 		db.execSQL("CREATE TABLE impul ( id INTEGER PRIMARY KEY AUTOINCREMENT," +
 				"name VARCHAR(20), timWhen INTEGER);");
 		db.execSQL("CREATE TABLE pts ( id INTEGER PRIMARY KEY AUTOINCREMENT," +
 				"date VARCHAR(10), ptsEvent INTEGER, name VARCHAR(20), timWhen INTEGER);");
+
 	}
 
-	public void clearSesh() {
+	public void clearEffic() {
 		SQLiteDatabase db = getWritableDatabase();
-		db.execSQL("DELETE FROM impul"); //clear all
-		db.execSQL("DELETE FROM pts"); //clear all
-		db.execSQL("DELETE FROM task"); //clear all
+		db.execSQL("DELETE FROM statsEffic"); //clear all
 		db.close();
 	}
 
-	public void clearTask() {
-		SQLiteDatabase db = getWritableDatabase();
-		db.execSQL("DELETE FROM task"); //clear all
-		db.close();
+	public String viewEffic() {
+		SQLiteDatabase db = getReadableDatabase();
+		Cursor cursorStats = db.rawQuery(
+				"SELECT CAST(sesh as TEXT) || ' ' || SUBSTR(dat,6,5) || ' ' || typ || ' ' || CAST(min as TEXT) || ' ' || event || ' ' || CAST(wasTimed as TEXT)"
+				+ " FROM statsEffic", null);
+		// WHERE date<>'" + sDate + "'
+		Cursor cursorInner;
+		int iCount = 0;
+		String sRet = "";
+		while (cursorStats.moveToNext())
+		{
+			sRet = sRet + ";" + cursorStats.getString(0);
+		}
+
+		cursorStats.close();
+
+		if(sRet.length() > 0) {
+			sRet = sRet.substring(1);
+		}
+		return sRet;
 	}
 
 	public void addImp(String sImp, int iTimWhen) {
@@ -152,24 +163,166 @@ public class Database extends SQLiteOpenHelper {
 		}
 	}
 
-	public void doneTimIncr(String sDate,
-						  String sName, int iMin, String sTimWhen) {
+	public void doneEffic(Long lCurSeshNum,
+						  String sDate,
+							String sType,
+						 int iMin,
+						 String sEvent,
+						 int iWasTimed) {
 
 		/*
-		db.execSQL("CREATE TABLE timIncr ( id INTEGER PRIMARY KEY AUTOINCREMENT," +
-				"date VARCHAR(10), name VARCHAR(20), min INTEGER, timWhen VARCHAR(5));");
+		db.execSQL("CREATE TABLE statsEffic ( id INTEGER PRIMARY KEY AUTOINCREMENT," +
+				"sesh INTEGER,dat VARCHAR(10), typ VARCHAR(10), min INTEGER, event VARCHAR(20), wasTimed INTEGER);");
 		 */
 
 		SQLiteDatabase db = getWritableDatabase();
+		db.execSQL("INSERT INTO statsEffic (sesh, dat, typ, min, event, wasTimed) VALUES (" +
+				"" + String.valueOf(lCurSeshNum) + "" +
+				",\"" + sDate + "\"" +
+				",\"" + sType + "\"" +
+				"," + String.valueOf(iMin) + "" +
+				",\"" + sEvent + "\"" +
+				"," + String.valueOf(iWasTimed) + "" +
+				")");
+		db.close();
 
-		db.execSQL("INSERT INTO timIncr (date, name, min, timWhen) VALUES (" +
+		/*
+		SQLiteDatabase db = getWritableDatabase();
+
+		db.execSQL("INSERT INTO timDecr (date, name, min, timWhen) VALUES (" +
 				"\"" + sDate + "\"" +
 				",\"" + sName + "\"" +
 				"," + String.valueOf(iMin) + "" +
 				",\"" + sTimWhen + "\"" +
 				")");
 		db.close();
+		*/
 	}
+
+	public String[] summaryEfficSesh(long lCurSeshNum) {
+
+		/*
+		db.execSQL("CREATE TABLE statsEffic ( id INTEGER PRIMARY KEY AUTOINCREMENT," +
+				"dat VARCHAR(10), typ VARCHAR(10), min INTEGER, event VARCHAR(20), wasTimed INTEGER);");
+		 */
+
+		// returns ArrayList lRet to be displayed
+		// statsTrans holds avgMin and avgImpul (see abov)
+		// lRet contains deviations from avg + impulses
+
+		List<String> lRet = new ArrayList<String>();
+
+		SQLiteDatabase db = getReadableDatabase();
+		Cursor cursorTyp = db.rawQuery(
+				"SELECT typ, SUM(min) " +
+						"FROM statsEffic " +
+						"WHERE sesh='" + String.valueOf(lCurSeshNum) + "' " +
+						"GROUP BY typ;"
+				, null);
+
+		int iMinEngaged = 0;
+		int iMinTrans = 0;
+		int iMinLost = 0;
+		String sTyp = "";
+
+		while (cursorTyp.moveToNext())
+		{
+			sTyp = cursorTyp.getString(0);
+			if(sTyp.equalsIgnoreCase("l0st")) {
+				iMinLost = cursorTyp.getInt(1);
+			}
+			else if (sTyp.equalsIgnoreCase("trans")) {
+				iMinTrans = cursorTyp.getInt(1);
+			}
+			else if (sTyp.equalsIgnoreCase("engaged")) {
+				iMinEngaged = cursorTyp.getInt(1);
+			}
+		}
+
+		cursorTyp.close();
+
+		int iMinSum = iMinEngaged + iMinTrans + iMinLost;
+		double dPercEngaged = 0;
+		double dPercTrans = 0;
+		double dPercLost = 0;
+
+		if(iMinSum > 0) {
+			dPercEngaged = (double) iMinEngaged / (double)iMinSum;
+			dPercTrans = (double)iMinTrans / (double)iMinSum;
+			dPercLost = (double)iMinLost / (double)iMinSum;
+		}
+
+		lRet.add(String.valueOf(Math.round(dPercEngaged * 100))
+				+ " / "
+				+ String.valueOf(Math.round(dPercTrans * 100))
+				+ " / "
+				+ String.valueOf(Math.round(dPercLost * 100)));
+
+		return lRet.toArray(new String[]{});
+	}
+
+	public String[] summaryEfficDay(String sDatToday) {
+
+		/*
+		db.execSQL("CREATE TABLE statsEffic ( id INTEGER PRIMARY KEY AUTOINCREMENT," +
+				"dat VARCHAR(10), typ VARCHAR(10), min INTEGER, event VARCHAR(20), wasTimed INTEGER);");
+		 */
+
+		// returns ArrayList lRet to be displayed
+		// statsTrans holds avgMin and avgImpul (see abov)
+		// lRet contains deviations from avg + impulses
+
+		List<String> lRet = new ArrayList<String>();
+
+		SQLiteDatabase db = getReadableDatabase();
+		Cursor cursorTyp = db.rawQuery(
+				"SELECT typ, SUM(min) " +
+						"FROM statsEffic " +
+						"WHERE dat='" + sDatToday + "' " +
+						"GROUP BY typ;"
+				, null);
+
+		int iMinEngaged = 0;
+		int iMinTrans = 0;
+		int iMinLost = 0;
+		String sTyp = "";
+
+		while (cursorTyp.moveToNext())
+		{
+			sTyp = cursorTyp.getString(0);
+			if(sTyp.equalsIgnoreCase("l0st")) {
+				iMinLost = cursorTyp.getInt(1);
+			}
+			else if (sTyp.equalsIgnoreCase("trans")) {
+				iMinTrans = cursorTyp.getInt(1);
+			}
+			else if (sTyp.equalsIgnoreCase("engaged")) {
+				iMinEngaged = cursorTyp.getInt(1);
+			}
+		}
+
+		cursorTyp.close();
+
+		int iMinSum = iMinEngaged + iMinTrans + iMinLost;
+		double dPercEngaged = 0;
+		double dPercTrans = 0;
+		double dPercLost = 0;
+
+		if(iMinSum > 0) {
+			dPercEngaged = (double)iMinEngaged / (double)iMinSum;
+			dPercTrans = (double)iMinTrans / (double)iMinSum;
+			dPercLost = (double)iMinLost / (double)iMinSum;
+		}
+
+		lRet.add(String.valueOf(Math.round(dPercEngaged * 100))
+				+ " / "
+				+ String.valueOf(Math.round(dPercTrans * 100))
+				+ " / "
+				+ String.valueOf(Math.round(dPercLost * 100)));
+
+		return lRet.toArray(new String[]{});
+	}
+
 
 	// used for ActivityInput -> "l0st"
 	public void doneTimDecr(String sDate,
@@ -180,6 +333,7 @@ public class Database extends SQLiteOpenHelper {
 				"date VARCHAR(10), name VARCHAR(20), min INTEGER, timWhen VARCHAR(5));");
 		 */
 
+		/*
 		SQLiteDatabase db = getWritableDatabase();
 
 		db.execSQL("INSERT INTO timDecr (date, name, min, timWhen) VALUES (" +
@@ -189,6 +343,7 @@ public class Database extends SQLiteOpenHelper {
 				",\"" + sTimWhen + "\"" +
 				")");
 		db.close();
+		*/
 
 		EventData eventData = new EventData();
 		eventData.setDate(sDate);
@@ -295,6 +450,8 @@ public class Database extends SQLiteOpenHelper {
 			lRet.add(cursorImpul.getInt(1)
 					+ " | " + cursorImpul.getString(0));
 		}
+
+		cursorImpul.close();
 
 		return lRet.toArray(new String[]{});
 	}
@@ -414,19 +571,14 @@ public class Database extends SQLiteOpenHelper {
 		db.execSQL("DELETE FROM impul");
 	}
 
-	public void clearDb() {
-		SQLiteDatabase db = getWritableDatabase();
-
-		db.execSQL("DELETE FROM timIncr");
-		db.execSQL("DELETE FROM timDecr");
-	}
-
+/*
 	//we add a new choice - so now it's possible to extend the list of choices.
 	public void addChoice(String choice) {
 		SQLiteDatabase db = getReadableDatabase();
 		db.execSQL("INSERT INTO choices (name) VALUES ('"+choice+"')");
 		db.close();
 	}
+*/
 
     /*
      * Reading the user-defined choices from the database
@@ -509,20 +661,6 @@ public class Database extends SQLiteOpenHelper {
 		}
 	}
 */
-
-	public String[] getPrj() {
-
-		prefs = PreferenceManager.getDefaultSharedPreferences(context);
-		String[] sxSmTas = prefs.getString("0comprj", "2").split(";");
-		return sxSmTas;
-	}
-
-	public String[] getSmTas() {
-
-		prefs = PreferenceManager.getDefaultSharedPreferences(context);
-		String[] sxSmTas = prefs.getString("0comtas", "2").split(";");
-		return sxSmTas;
-	}
 
 	//Add a new item into the database - to track what we had today for lunch!
 	public void deleteSmTas(String sTask) {

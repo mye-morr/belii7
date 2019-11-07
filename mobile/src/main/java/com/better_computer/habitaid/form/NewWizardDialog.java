@@ -252,6 +252,7 @@ public class NewWizardDialog extends WizardDialog {
                     else {
                         nonSched.setCat(sCategory);
                         nonSched.setSubcat(sSubCategory);
+                        nonSched.setWtcat(14);
                         nonSched.setName(sName);
                         nonSched.setContent(sContent);
 

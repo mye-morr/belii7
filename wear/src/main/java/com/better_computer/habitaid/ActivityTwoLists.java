@@ -61,6 +61,7 @@ public class ActivityTwoLists extends Activity{
         setContentView(R.layout.activity_two_lists);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+        final MyApplication myApp = (MyApplication)getApplication();
         bAfterTask = false;
 
         Intent intent = getIntent();
@@ -72,10 +73,10 @@ public class ActivityTwoLists extends Activity{
         }
         else {
             sType = intent.getStringExtra("sType");
-            if(sType.equalsIgnoreCase("prj/smtas")) {
+            if(sType.equalsIgnoreCase("dash/day")) {
                 iMode = 2;
             }
-            else if(sType.equalsIgnoreCase("timDecr/ptsPos")) {
+            else if(sType.equalsIgnoreCase("day/wk")) {
                 iMode = 1;
             }
         }
@@ -97,17 +98,28 @@ public class ActivityTwoLists extends Activity{
 
                 Calendar calNow = Calendar.getInstance();
                 // prj/smtas
-                if(iMode == 2) {
-                    final String[] sxPrj = db.getPrj();
-                    final String[] sxSmTas = db.getSmTas();
+                if(iMode == 2) { //dash/day
+
+                    final String[] sxSesh = db.summaryEfficSesh(myApp.getSeshCur());
+                    final String[] sxDay = db.summaryEfficDay(dateFormat.format(calNow.getTime()));
+                    mListViewLeft.setAdapter(new ArrayAdapter<String>(getApplicationContext(),
+                            R.layout.listview_row, android.R.id.text1, sxSesh));
+                    mListViewRight.setAdapter(new ArrayAdapter<String>(getApplicationContext(),
+                            R.layout.listview_row, android.R.id.text1, sxDay));
+
+                    /*
+                    final String[] sxDash = db.getPrj();
+                    final String[] sxDay = db.getSmTas();
 
                     mListViewLeft.setAdapter(new ArrayAdapter<String>(getApplicationContext(),
-                            R.layout.listview_row, android.R.id.text1, sxPrj));
+                            R.layout.listview_row, android.R.id.text1, sxDash));
                     mListViewRight.setAdapter(new ArrayAdapter<String>(getApplicationContext(),
-                            R.layout.listview_row, android.R.id.text1, sxSmTas));
+                            R.layout.listview_row, android.R.id.text1, sxDay));
+                    */
                 }
                 // timDecr/ptsPos
                 else if (iMode ==1) {
+                    /*
                     final String[] sxTimDecr = db.summaryTimDecr(dateFormat.format(calNow.getTime()));
                     final String[] sxPtsPos = db.summaryPtsPos(dateFormat.format(calNow.getTime()));
 
@@ -115,6 +127,7 @@ public class ActivityTwoLists extends Activity{
                             R.layout.listview_row, android.R.id.text1, sxTimDecr));
                     mListViewRight.setAdapter(new ArrayAdapter<String>(getApplicationContext(),
                             R.layout.listview_row, android.R.id.text1, sxPtsPos));
+                    */
                 }
                 else { // after task
                     final String[] sxStats = db.summaryStats(sTrans, iMin);
@@ -230,11 +243,11 @@ public class ActivityTwoLists extends Activity{
 
                                     // at the moment this is not displayed anywhere
                                     if(sType.equalsIgnoreCase("timIncr")) {
-                                        db.doneTimIncr(sDate, sTrans, iMin, sTime);
+                                        //db.doneTimIncr(sDate, sTrans, iMin, sTime);
                                     }
                                     // this gets displayed in iMode = 1
                                     else if (sType.equalsIgnoreCase("timDecr")) {
-                                        db.doneTimDecr(sDate, sTrans, iMin, sTime);
+                                        //db.doneTimDecr(sDate, sTrans, iMin, sTime);
                                     }
 
                                     myApp.sCurType = "";
@@ -262,7 +275,7 @@ public class ActivityTwoLists extends Activity{
 
                                     // at the moment this is not displayed anywhere
                                     if(sType.equalsIgnoreCase("timIncr")) {
-                                        db.doneTimIncr(sDate, sTrans, iMin, sTime);
+                                        //db.doneTimIncr(sDate, sTrans, iMin, sTime);
                                     }
                                     // this gets displayed in iMode = 1
                                     else if (sType.equalsIgnoreCase("timDecr")) {

@@ -327,14 +327,14 @@
                     />
 
                 <Button
-                    android:id="@+id/btnRouti"
+                    android:id="@+id/btnTrans"
                     android:layout_width="50dp"
                     android:layout_marginTop="-6dp"
                     android:layout_marginBottom="-6dp"
                     android:layout_marginLeft="-2dp"
                     android:layout_marginRight="-3dp"
                     android:layout_height="wrap_content"
-                    android:text="routi"
+                    android:text="trans"
                     style="@style/Widget.AppCompat.Button.Borderless.Colored"
                     android:textSize="14sp"
                     android:textColor="@color/abc_search_url_text_normal"
