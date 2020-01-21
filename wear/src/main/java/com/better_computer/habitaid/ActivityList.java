@@ -46,7 +46,6 @@ public class ActivityList extends Activity{
 
     public static Context contextOfApplication;
 
-    private PressedData pressedData;
     private Database db;
     private SharedPreferences prefs;
 
@@ -66,8 +65,6 @@ public class ActivityList extends Activity{
         setContentView(R.layout.activity_list);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         contextOfApplication = getApplicationContext();
-
-        pressedData = new PressedData();
 
         Intent intent = getIntent();
         sListName = intent.getStringExtra("sListName");
@@ -97,6 +94,25 @@ public class ActivityList extends Activity{
 
                 mListViewMain.setAdapter(new ArrayAdapter<String>(getApplicationContext(),
                         R.layout.listview_row, android.R.id.text1, fsxItems));
+
+                mListViewMain.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                    @Override
+                    public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        String sItem = mListViewMain.getItemAtPosition(i).toString();
+                        String[] sxParts = sItem.split(" ");
+
+                        if(sxParts.length > 3) {
+                            db.deleteEffic(
+                                    sxParts[0]
+                                    ,sxParts[2]
+                                    ,sxParts[3]);
+
+                            ActivityButtons.startActivity(getApplicationContext());
+                        }
+
+                        return true;
+                    }
+                });
 
                 mListViewMain.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
@@ -170,8 +186,16 @@ public class ActivityList extends Activity{
                                             ,0
                                     );
 
-                                    //db.doneTimDecr(sDate, sListName, parseInt(sItem), sTime);
 
+                                    db.doneEvent(
+                                            StopwatchUtil.getDateTransStarted(contextOfApplication),
+                                            "l0st: " + sListName,
+                                            parseInt(sItem),
+                                            0,
+                                            StopwatchUtil.getDateTimeTransStarted(contextOfApplication),
+                                            sTime);
+
+                                    //db.doneTimDecr(sDate, sListName, parseInt(sItem), sTime);
 
                                     myApp.resetMissedPrompt();
                                     ActivityButtons.startActivity(getApplicationContext());

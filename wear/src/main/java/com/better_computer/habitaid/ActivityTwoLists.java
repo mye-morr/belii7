@@ -101,11 +101,16 @@ public class ActivityTwoLists extends Activity{
                 if(iMode == 2) { //dash/day
 
                     final String[] sxSesh = db.summaryEfficSesh(myApp.getSeshCur());
-                    final String[] sxDay = db.summaryEfficDay(dateFormat.format(calNow.getTime()));
                     mListViewLeft.setAdapter(new ArrayAdapter<String>(getApplicationContext(),
                             R.layout.listview_row, android.R.id.text1, sxSesh));
-                    mListViewRight.setAdapter(new ArrayAdapter<String>(getApplicationContext(),
-                            R.layout.listview_row, android.R.id.text1, sxDay));
+
+                    //!!! should be from day-start ie long -> date time
+                    // do a lookup for date and greater than time etc.
+                    // call it 'since-time' etc.
+
+                    //final String[] sxDay = db.summaryEfficDay(dateFormat.format(calNow.getTime()));
+                    //mListViewRight.setAdapter(new ArrayAdapter<String>(getApplicationContext(),
+                    //        R.layout.listview_row, android.R.id.text1, sxDay));
 
                     /*
                     final String[] sxDash = db.getPrj();

@@ -62,6 +62,7 @@ public class MyApplication extends Application {
     public static long lTimeWhipDue = 0;
 
     public static boolean bFirstLaunch = true;
+    public static boolean bDebug = false;
 
     // the idea here was that, if the transitions between small tasks were short
     // then it would have a multiplier effect on effective minutes (eg guitar-hero)
@@ -84,111 +85,111 @@ public class MyApplication extends Application {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext);
             WearMessage wearMessage = new WearMessage(applicationContext);
 
-        if(bTimerTurnedOff) {
-            handlerIntervalTimer.removeCallbacks(this);
-            bTimerTurnedOff = false;
-        }
-        else {
-            if (bNewTrans || bNewWork || bNewTask) {
-                if ((iCtrMissed > 15) &&
-                        (iCtrMissed % 3 == 0)) {
-
-                    iCtrMissed++;
-
-                    //!!! an impossible condition
-                    if (iCtrMissed < 10) {
-                        sMsg = prefs.getString("alert_msg_nag", "alert_msg_nag");
-                        messageData.setText1(sMsg);
-                        messageData.setText2("");
-                    } else if (iCtrMissed < 30) {
-                        sMsg = prefs.getString("alert_msg_secondary", "alert_msg_secondary");
-                        messageData.setText1(sMsg);
-                        messageData.setText2("");
-
-                        //subtractPtsCur(5);
-
-                        bIsModVibrationPattern = true;
-                    } else {
-                        sMsg = prefs.getString("alert_msg_critical", "alert_msg_critical");
-                        messageData.setText1(sMsg);
-                        messageData.setText2("");
-
-                        //subtractPtsCur(10);
-
-                        bIsModVibrationPattern = true;
-                    }
-
-                    if (bIsModVibrationPattern) {
-                        //ActivityCard.startActivity(getApplicationContext(), messageData);
-
-                        ActivityMessage.startActivity(getApplicationContext(), messageData, modVibrationPattern);
-                    } else {
-                        ActivityMessage.startActivity(getApplicationContext(), messageData);
-                    }
-                } else {
-                    iCtrMissed++;
-
-                    Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
-                    //-1 - don't repeat
-                    final int indexInPatternToRepeat = -1;
-                    vibrator.vibrate(vibrationPattern, indexInPatternToRepeat);
-                } // end reached threshold of iCtrMissed
-
-            } else {
-
-                lTimeWhipDue = prefs.getLong(TIME_WHIP_DUE, 0);
-                if (System.currentTimeMillis() > lTimeWhipDue) {
-                    Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
-                    //-1 - don't repeat
-                    final int indexInPatternToRepeat = -1;
-                    vibrator.vibrate(vibrationPattern, indexInPatternToRepeat);
-                }
-                else {
-                    if (!bInDrill) {
-                        lCountdownNextLib--;
-
-                        if (lCountdownNextLib < 1) {
-                            sFrqEncourage = prefs.getString(FRQ_ENCOURAGE, "10;7");
-                            int iBufSemi = 0;
-                            iBufSemi = sFrqEncourage.indexOf(";");
-
-                            int iIncr = 0;
-                            int iVaria = 0;
-
-                            if (iBufSemi > 0) {
-                                iIncr = Integer.parseInt(sFrqEncourage.substring(0, iBufSemi).trim());
-                                iVaria = Integer.parseInt(sFrqEncourage.substring(iBufSemi + 1).trim());
-                            } else {
-                                iIncr = Integer.parseInt(sFrqEncourage);
-                                iVaria = 0;
-                            }
-
-                            sMsg = prefs.getString(NEXT_CARD_MSG, "NEXT_CARD_MSG");
-
-                            int iBuf = sMsg.indexOf("-=");
-                            String sKey = sMsg.substring(0, iBuf).trim();
-                            String sVal = sMsg.substring(iBuf + 2).trim();
-
-                            messageData.setText1(sKey);
-                            messageData.setText2(sVal);
-                            ActivityCard.startActivity(getApplicationContext(), messageData);
-
-                            int iPlusMinus = 1;
-                            if (rand.nextDouble() < 0.5) {
-                                iPlusMinus = -1;
-                            }
-
-                            lCountdownNextLib = iIncr + Math.round(iPlusMinus * rand.nextDouble() * iVaria);
-                            wearMessage = new WearMessage(getApplicationContext());
-                            wearMessage.sendMessage("/fetch-next-card", "", "");
-                            // wearmessage update swp from dynarray
-                        } // end of lCountdownNextLib
-                    } // !InDrill
-                } // end not in task
+            if(bTimerTurnedOff) {
+                handlerIntervalTimer.removeCallbacks(this);
+                bTimerTurnedOff = false;
             }
+            else {
+                // aggrevation
+                if (bNewTrans || bNewWork || bNewTask || !sNewCycl.equalsIgnoreCase("offt"))
+                {
+                    if ((iCtrMissed > 15) &&
+                            (iCtrMissed % 3 == 0)) {
 
-            handlerIntervalTimer.postDelayed(this, 1000 * iPrefSeconds);
-        }
+                        iCtrMissed++;
+
+                        if (iCtrMissed < 30) {
+                            sMsg = prefs.getString("alert_msg_secondary", "alert_msg_secondary");
+                            messageData.setText1(sMsg);
+                            messageData.setText2("");
+
+                            //subtractPtsCur(5);
+
+                            bIsModVibrationPattern = true;
+                        } else {
+                            sMsg = prefs.getString("alert_msg_critical", "alert_msg_critical");
+                            messageData.setText1(sMsg);
+                            messageData.setText2("");
+
+                            //subtractPtsCur(10);
+
+                            bIsModVibrationPattern = true;
+                        }
+
+                        //ActivityCard.startActivity(getApplicationContext(), messageData);
+                        //ActivityMessage.startActivity(getApplicationContext(), messageData);
+                        ActivityMessage.startActivity(getApplicationContext(), messageData, modVibrationPattern);
+
+                    } else {
+                        iCtrMissed++;
+
+                        Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+                        //-1 - don't repeat
+                        final int indexInPatternToRepeat = -1;
+                        vibrator.vibrate(vibrationPattern, indexInPatternToRepeat);
+                    } // end reached threshold of iCtrMissed
+
+                    // if not in any commitment
+                    // goal is not to whip unless curEvent is beyond offt
+                } else {
+                    lTimeWhipDue = prefs.getLong(TIME_WHIP_DUE, 0);
+
+                    if(System.currentTimeMillis() > lTimeWhipDue)
+                    {
+                        if (!bInDrill) {
+                            lCountdownNextLib--;
+
+                            if (lCountdownNextLib < 1) {
+                                sFrqEncourage = prefs.getString(FRQ_ENCOURAGE, "10;7");
+                                int iBufSemi = 0;
+                                iBufSemi = sFrqEncourage.indexOf(";");
+
+                                int iIncr = 0;
+                                int iVaria = 0;
+
+                                if (iBufSemi > 0) {
+                                    iIncr = Integer.parseInt(sFrqEncourage.substring(0, iBufSemi).trim());
+                                    iVaria = Integer.parseInt(sFrqEncourage.substring(iBufSemi + 1).trim());
+                                } else {
+                                    iIncr = Integer.parseInt(sFrqEncourage);
+                                    iVaria = 0;
+                                }
+
+								/*
+								sMsg = prefs.getString(NEXT_CARD_MSG, "NEXT_CARD_MSG");
+
+								int iBuf = sMsg.indexOf("-=");
+								String sKey = sMsg.substring(0, iBuf).trim();
+								String sVal = sMsg.substring(iBuf + 2).trim();
+
+								messageData.setText1(sKey);
+								messageData.setText2(sVal);
+								ActivityCard.startActivity(getApplicationContext(), messageData);
+
+								wearMessage = new WearMessage(getApplicationContext());
+								wearMessage.sendMessage("/fetch-next-card", "", "");
+								// wearmessage update swp from dynarray
+								// really this should be player: combined learning + habits
+								*/
+
+                                Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+                                //-1 - don't repeat
+                                final int indexInPatternToRepeat = -1;
+                                vibrator.vibrate(vibrationPattern, indexInPatternToRepeat);
+
+                                int iPlusMinus = 1;
+                                if (rand.nextDouble() < 0.5) {
+                                    iPlusMinus = -1;
+                                }
+                                lCountdownNextLib = iIncr + Math.round(iPlusMinus * rand.nextDouble() * iVaria);
+
+                            } // end of lCountdownNextLib
+                        } // !InDrill
+                    }
+                }
+
+                handlerIntervalTimer.postDelayed(this, 1000 * iPrefSeconds);
+            }
         }
     };
 

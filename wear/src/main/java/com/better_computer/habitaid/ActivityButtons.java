@@ -94,6 +94,7 @@ public class ActivityButtons extends WearableActivity
     private PressedData pressedData;
     private Database db;
     public static Context contextOfApplication;
+    private boolean bDebug;
 
     private static final String LOG_TAG = ActivityButtons.class.getSimpleName();
 
@@ -133,6 +134,8 @@ public class ActivityButtons extends WearableActivity
 
             myApp.bFirstLaunch = false;
         }
+
+        bDebug = myApp.bDebug;
 
         sNewCycl = myApp.sNewCycl;
         bNewTrans = myApp.bNewTrans;
@@ -251,9 +254,11 @@ public class ActivityButtons extends WearableActivity
                 long passedSecs = passedTime / 1000;
                 int iMinPassed = (int) Math.round(passedSecs / 60.0);
 
-                Toast.makeText(getApplicationContext(),
-                        "trans:decd -> effic",
-                        Toast.LENGTH_SHORT).show();
+                if(bDebug) {
+                    Toast.makeText(getApplicationContext(),
+                            "trans:decd -> effic",
+                            Toast.LENGTH_LONG).show();
+                }
 
                 // trans start time doesn't reset
                 // after optn, so whether you got that far or not
@@ -306,9 +311,12 @@ public class ActivityButtons extends WearableActivity
                             dateTimeFormat.format(cNow.getTime()));
                 }
 
-                Toast.makeText(getApplicationContext(),
-                        "trans:rstrt -> effic",
-                        Toast.LENGTH_SHORT).show();
+                if(bDebug) {
+                    Toast.makeText(getApplicationContext(),
+                            "trans:rstrt -> effic\n" +
+                                    "start: timer/motiva",
+                            Toast.LENGTH_LONG).show();
+                }
 
                 long passedTime = StopwatchUtil.getTransPassedTime(contextOfApplication);
                 long passedSecs = passedTime / 1000;
@@ -330,10 +338,6 @@ public class ActivityButtons extends WearableActivity
                 myApp.sNewCycl = "offt";
                 lCurSeshNum = lCurSeshNum + 1;
                 myApp.setSeshCur(lCurSeshNum + 1);
-
-                if(myApp.isOnTimer()) {
-                    myApp.toggleTimer();
-                }
 
                 return true;
             }
@@ -366,11 +370,13 @@ public class ActivityButtons extends WearableActivity
                             passedSecs = passedTime / 1000;
                             iMinPassed = (int) Math.round(passedSecs / 60.0);
 
-                            Toast.makeText(getApplicationContext(),
-                                    "l0st:offt -> effic\n" +
-                                     "trans:offt -> event\n" +
-                                     "myApp.toggleTimer()",
-                                    Toast.LENGTH_SHORT).show();
+                            if(bDebug) {
+                                Toast.makeText(getApplicationContext(),
+                                        "l0st:offt -> effic\n" +
+                                                "trans:offt -> event\n" +
+                                                "start: timer",
+                                        Toast.LENGTH_LONG).show();
+                            }
 
                             db.doneEffic(
                                     lCurSeshNum
@@ -395,7 +401,10 @@ public class ActivityButtons extends WearableActivity
 
                             //initiate the buzzer
                             StopwatchUtil.resetEngagedStartTime(contextOfApplication, "start");
-                            myApp.toggleTimer();
+
+                            if(!myApp.isOnTimer()) {
+                                myApp.toggleTimer();
+                            }
 
                             break;
                         case "plng":
@@ -407,10 +416,12 @@ public class ActivityButtons extends WearableActivity
                             passedSecs = passedTime / 1000;
                             iMinPassed = (int) Math.round(passedSecs / 60.0);
 
-                            Toast.makeText(getApplicationContext(),
-                                    "trans:plng -> effic\n" +
-                                            "trans:plng -> event",
-                                    Toast.LENGTH_SHORT).show();
+                            if(bDebug) {
+                                Toast.makeText(getApplicationContext(),
+                                        "trans:plng -> effic\n" +
+                                                "trans:plng -> event",
+                                        Toast.LENGTH_LONG).show();
+                            }
 
                             db.doneEffic(
                                     lCurSeshNum
@@ -443,11 +454,13 @@ public class ActivityButtons extends WearableActivity
                             passedSecs = passedTime / 1000;
                             iMinPassed = (int) Math.round(passedSecs / 60.0);
 
-                            Toast.makeText(getApplicationContext(),
-                                    "trans:optn -> effic\n" +
-                                     "trans:optn -> event\n" +
-                                     "no-reset: trans",
-                                    Toast.LENGTH_SHORT).show();
+                            if(bDebug) {
+                                Toast.makeText(getApplicationContext(),
+                                        "trans:optn -> effic\n" +
+                                                "trans:optn -> event\n" +
+                                                "no-reset: trans",
+                                        Toast.LENGTH_LONG).show();
+                            }
 
                             db.doneEffic(
                                     lCurSeshNum
@@ -601,12 +614,14 @@ public class ActivityButtons extends WearableActivity
                             dateFormat.format(cNow.getTime()),
                             dateTimeFormat.format(cNow.getTime()));
 
-                    Toast.makeText(getApplicationContext(),
-                            "reset: trans\n" +
-                                    sEventPrefix + ": " + myApp.sCurEvent + " -> event\n" +
-                                    "sActiveFace: 1\n" +
-                                    "reset: engaged",
-                            Toast.LENGTH_SHORT).show();
+                    if(bDebug) {
+                        Toast.makeText(getApplicationContext(),
+                                "reset: trans\n" +
+                                        sEventPrefix + ": " + myApp.sCurEvent + " -> event\n" +
+                                        "sActiveFace: 1\n" +
+                                        "reset: engaged",
+                                Toast.LENGTH_LONG).show();
+                    }
 
                     long passedTime = StopwatchUtil.getEventPassedTime(contextOfApplication);
                     long passedSecs = passedTime / 1000;
@@ -1064,6 +1079,7 @@ public class ActivityButtons extends WearableActivity
         }
         else if (sCaptionActive.equalsIgnoreCase("reset")) {
             db.clearEffic();
+            StopwatchUtil.setTodayStartTime(contextOfApplication, System.currentTimeMillis());
         }
         else if (sCaptionActive.equalsIgnoreCase("list")) {
 
@@ -1111,9 +1127,11 @@ public class ActivityButtons extends WearableActivity
                 || sCaptionActive.equalsIgnoreCase("spacd")
                 || sCaptionActive.equalsIgnoreCase("dart")) {
 
-            Toast.makeText(getApplicationContext(),
-                    "reset: engaged",
-                    Toast.LENGTH_SHORT).show();
+            if(bDebug) {
+                Toast.makeText(getApplicationContext(),
+                        "reset: engaged",
+                        Toast.LENGTH_LONG).show();
+            }
 
             StopwatchUtil.resetEngagedStartTime(this, "maint");
 
@@ -1141,9 +1159,48 @@ public class ActivityButtons extends WearableActivity
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
             startActivity(intent);
         }
+        else if (sCaptionActive.equalsIgnoreCase("debug")) {
+            bDebug = !bDebug;
+            myApp.bDebug = bDebug;
+        }
         else if (sCaptionActive.equalsIgnoreCase("maint")) {
             if(bIsLongClick) {
-                bImpuls = !bImpuls;
+
+                Calendar cNow = Calendar.getInstance();
+
+                if(bImpuls) {
+                    long passedTime = StopwatchUtil.getCalmPassedTime(contextOfApplication);
+                    long passedSecs = passedTime / 1000;
+                    int iMinPassed = (int) Math.round(passedSecs / 60.0);
+                    db.doneEvent(
+                            StopwatchUtil.getDateCalmStarted(contextOfApplication),
+                            "calm",
+                            iMinPassed,
+                            0,
+                            StopwatchUtil.getDateTimeCalmStarted(contextOfApplication),
+                            timeFormat.format(cNow.getTime()));
+
+                    db.doneEffic(
+                            lCurSeshNum
+                            , dateFormat.format(cNow.getTime())
+                            , "calm"
+                            , iMinPassed
+                            , sCurEvent
+                            , bTimerTicking ? 1 : 0);
+
+                    StopwatchUtil.resetEngagedStartTime(contextOfApplication, "maint");
+
+                    bImpuls = false;
+                }
+                else {
+                    StopwatchUtil.resetCalmStartTime(contextOfApplication);
+                    StopwatchUtil.setDateCalmStarted(
+                            dateFormat.format(cNow.getTime()),
+                            dateTimeFormat.format(cNow.getTime()));
+
+                    bImpuls = true;
+                }
+
                 myApp.bImpuls = bImpuls;
 
                 Intent intent = new Intent(getApplicationContext(), ActivityButtons.class);
@@ -1212,11 +1269,13 @@ public class ActivityButtons extends WearableActivity
 
                     }
 
-                    Toast.makeText(getApplicationContext(),
-                            "top-off: maint\n" +
-                                    "reset: missedPrompt\n" +
-                                    "reset: eng\\" + sCaptionActive,
-                            Toast.LENGTH_SHORT).show();
+                    if(bDebug) {
+                        Toast.makeText(getApplicationContext(),
+                                "top-off: maint\n" +
+                                        "reset: missedPrompt\n" +
+                                        "reset: eng\\" + sCaptionActive,
+                                Toast.LENGTH_LONG).show();
+                    }
 
                     myApp.resetMissedPrompt();
 
@@ -1263,7 +1322,7 @@ public class ActivityButtons extends WearableActivity
 
                 // we know sCaption != "maint" at this point
                 // so cash in the last of the engaged time
-                if(sGamesLastStatus.equalsIgnoreCase("maint")) {
+                if (sGamesLastStatus.equalsIgnoreCase("maint")) {
 
                     long passedLastTouchTime = StopwatchUtil.getEngagedLastTouchPassedTime(this);
                     long passedLastTouchSecs = passedLastTouchTime / 1000;
@@ -1278,19 +1337,21 @@ public class ActivityButtons extends WearableActivity
 
                         db.doneEffic(
                                 lCurSeshNum
-                                ,sDate
-                                ,"engaged"
-                                ,iPassedMin,
+                                , sDate
+                                , "engaged"
+                                , iPassedMin,
                                 sCurEvent
-                                ,bTimerTicking?1:0);
+                                , bTimerTicking ? 1 : 0);
 
                     }
 
-                    Toast.makeText(getApplicationContext(),
-                            "top-off: maint\n" +
-                                    "reset: missedPrompt\n" +
-                                    "reset: eng\\" + sCaptionActive,
-                            Toast.LENGTH_SHORT).show();
+                    if(bDebug) {
+                        Toast.makeText(getApplicationContext(),
+                                "top-off: maint\n" +
+                                        "reset: missedPrompt\n" +
+                                        "reset: eng\\" + sCaptionActive,
+                                Toast.LENGTH_LONG).show();
+                    }
 
                     myApp.resetMissedPrompt();
 

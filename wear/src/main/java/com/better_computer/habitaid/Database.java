@@ -79,8 +79,8 @@ public class Database extends SQLiteOpenHelper {
 	public String viewEffic() {
 		SQLiteDatabase db = getReadableDatabase();
 		Cursor cursorStats = db.rawQuery(
-				"SELECT CAST(sesh as TEXT) || ' ' || SUBSTR(dat,6,5) || ' ' || typ || ' ' || CAST(min as TEXT) || ' ' || event || ' ' || CAST(wasTimed as TEXT)"
-				+ " FROM statsEffic", null);
+				"SELECT CAST(sesh as TEXT) || ' ' || typ || ' ' || CAST(min as TEXT) || ' ' || event || ' ' || CAST(wasTimed as TEXT)"
+				+ " FROM statsEffic ORDER BY id DESC", null);
 		// WHERE date<>'" + sDate + "'
 		Cursor cursorInner;
 		int iCount = 0;
@@ -285,6 +285,7 @@ public class Database extends SQLiteOpenHelper {
 		int iMinEngaged = 0;
 		int iMinTrans = 0;
 		int iMinLost = 0;
+		int iMinNoCtrl = 0;
 		String sTyp = "";
 
 		while (cursorTyp.moveToNext())
@@ -391,7 +392,6 @@ public class Database extends SQLiteOpenHelper {
 		final String eventDataString = eventData.toJsonString();
 		WearMessage wearMessage = new WearMessage(context);
 		wearMessage.sendData("/done-event", eventDataString);
-
 	}
 
 	public String[] summaryStats(String sTrans, int iTotMin) {
@@ -528,6 +528,41 @@ public class Database extends SQLiteOpenHelper {
 		return lRet.toArray(new String[]{});
 	}
 
+	public String[] summaryPts(String sDate) {
+
+		/*
+		db.execSQL("CREATE TABLE timDecr ( id INTEGER PRIMARY KEY AUTOINCREMENT," +
+				"date VARCHAR(10), name VARCHAR(20), min INTEGER, timWhen VARCHAR(5));");
+		 */
+
+		List<String> lRet = new ArrayList<String>();
+		lRet.add("");
+
+		SQLiteDatabase db = getReadableDatabase();
+
+		Cursor cursorPtsPos = db.rawQuery(
+				"SELECT name, SUM(ptsEvent) FROM pts "
+						+ "WHERE date='" + sDate + "'"
+						+ " AND ptsEvent > 0 "
+						+ "GROUP BY name ORDER BY SUM(ptsEvent) DESC"
+				, null);
+
+		int iSum = 0;
+		int iPtsVal = 0;
+		while (cursorPtsPos.moveToNext())
+		{
+			iPtsVal = cursorPtsPos.getInt(1);
+			lRet.add(String.valueOf(iPtsVal) + " | " + cursorPtsPos.getString(0));
+
+			iSum += iPtsVal;
+		}
+
+		cursorPtsPos.close();
+
+		lRet.set(0, String.valueOf(iSum));
+		return lRet.toArray(new String[]{});
+	}
+
 	public String[] summaryPtsPos(String sDate) {
 
 		/*
@@ -661,6 +696,24 @@ public class Database extends SQLiteOpenHelper {
 		}
 	}
 */
+
+	public void deleteEffic(String sSesh, String sEvent, String sMin) {
+		/*
+		db.execSQL("CREATE TABLE statsEffic ( id INTEGER PRIMARY KEY AUTOINCREMENT," +
+				"sesh INTEGER" +
+				",dat VARCHAR(10), typ VARCHAR(10), min INTEGER, event VARCHAR(20), wasTimed INTEGER);");
+		*/
+
+		SQLiteDatabase db = getWritableDatabase();
+
+		String sQuery = "DELETE FROM statsEffic WHERE " +
+				"sesh=" + sSesh + " AND " +
+				"typ='" + sEvent + "' AND " +
+				"min=" + sMin;
+
+		db.execSQL(sQuery);
+		db.close();
+	}
 
 	//Add a new item into the database - to track what we had today for lunch!
 	public void deleteSmTas(String sTask) {
