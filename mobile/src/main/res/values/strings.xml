@@ -72,4 +72,10 @@
         <item>Fam</item>
     </string-array>
 
+    <string name="lblIPAddress">Device (Local) IP Address:</string>
+    <string name="btnPing">Ping Device</string>
+    <string name="errTxt_Ip_has_spaces">IP Address is null or contains spaces</string>
+    <string name="errTxt_Ip_invalid">Invalid IP Address entered</string>
+    <string name="msg_to_send">Message from android application</string>
+
 </resources>

@@ -45,21 +45,26 @@ public class HandheldListenerService extends WearableListenerService {
             EventData eventData = EventData.toEventData(jsonString);
 
             Events trans = new Events();
-            trans.setsDate(eventData.getDate());
-            trans.setsName(eventData.getName());
-            trans.setiTimDur(parseInt(eventData.getTimDur()));
-            trans.setiPtsVal(parseInt(eventData.getPtsVal()));
-            trans.setiImp(parseInt(eventData.getImp()));
-            trans.setsDtTimStr(eventData.getDtTimStr());
-            trans.setsTimEnd(eventData.getTimEnd());
+            trans.setSDate(eventData.getDate());
+            trans.setSName(eventData.getName());
+            trans.setITimDur(parseInt(eventData.getTimDur()));
+            trans.setIPtsVal(parseInt(eventData.getPtsVal()));
+            trans.setIImp(parseInt(eventData.getImp()));
+            trans.setSDtTimStr(eventData.getDtTimStr());
+            trans.setSTimEnd(eventData.getTimEnd());
 
             DatabaseHelper.getInstance().getHelper(EventsHelper.class).createOrUpdate(trans);
         }
         else if(event.getPath().equalsIgnoreCase("/fetch-next-card")) {
+            byte[] inBytesData = event.getData();
+            String jsonString = new String(inBytesData);
+            MessageData messageData = MessageData.toMessageData(jsonString);
+            String sCategory = messageData.getText1();
+
             Context context = getApplicationContext();
             MyApplication myApp = ((MyApplication) getApplication());
             String sNextCard = "";
-            sNextCard = myApp.dynaArray.getRandomElementNew();
+            sNextCard = myApp.dynaArray.getRandomElementNew(sCategory);
             wearMessage = new WearMessage(context);
             wearMessage.sendMessage("/store-next-card", sNextCard, "");
         }

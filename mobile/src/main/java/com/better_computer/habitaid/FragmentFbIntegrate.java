@@ -1,5 +1,6 @@
 package com.better_computer.habitaid;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -36,10 +37,14 @@ import com.better_computer.habitaid.service.PlayerService;
 import com.better_computer.habitaid.share.LibraryData;
 import com.better_computer.habitaid.share.SerializedArray;
 import com.better_computer.habitaid.share.WearMessage;
+import com.better_computer.habitaid.sockets.ServerTask;
+import com.better_computer.habitaid.sockets.SocketCommunicationTask;
+import com.better_computer.habitaid.util.Callback;
 import com.better_computer.habitaid.util.DynaArray;
 import com.better_computer.habitaid.util.MarginDecoration;
 import com.better_computer.habitaid.util.StopwatchUtil;
 import com.better_computer.habitaid.util.SyncData;
+import com.better_computer.habitaid.util.Validator;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -174,6 +179,25 @@ public class FragmentFbIntegrate extends AbstractBaseFragment {
         final SeekBar fSeekBar = (SeekBar) rootView.findViewById(R.id.seekBar);
         final SeekBar fSeekBar2 = (SeekBar) rootView.findViewById(R.id.seekBar2);
         final ListView listViewContentLog = (ListView) rootView.findViewById(R.id.schedule_content_log);
+        final Button btnStartServer = (Button) rootView.findViewById(R.id.btnStartServer);
+        final Button btnPing = (Button) rootView.findViewById(R.id.btnPing);
+
+
+        btnStartServer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final MyApplication myApp = (MyApplication)getActivity().getApplication();
+
+                startServer();
+            }
+        });
+
+        btnPing.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ping();
+            }
+        });
 
         btnTestPlayer.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -694,6 +718,93 @@ public class FragmentFbIntegrate extends AbstractBaseFragment {
         sxRet[2] = saBuf3.getSerialString(";");
 
         return sxRet;
+    }
+
+    // Start a server in a separate thread to receive any
+    // messages from the client device. Client can only send
+    // message to us, when the server is up and running
+    private void startServer() {
+        // First get the views one by one
+        final TextView lblError = (TextView)rootView.findViewById(R.id.lblError);
+
+        try {
+            // Start the server socket which would listen
+            // to the client communication
+            new ServerTask().startServer(new Callback() {
+                @Override
+                public void execute(int errorCode, Object data) {
+                    try {
+                        if(errorCode > 0)
+                            throw new Exception(data.toString());
+
+                        // Show the toast
+                        showToast(data.toString());
+                    } catch(Exception ex) {
+                        // Display this exception message on our error label field
+                        lblError.setText(ex.getMessage());
+                    }
+                }
+            }, getResources().getInteger(R.integer.server_port));
+        } catch(Exception ex) {
+            Log.d("","startServer: " + "Exception occurred: ", ex);
+
+            // Display this exception message on our error label field
+            lblError.setText(ex.getMessage());
+        }
+    }
+
+    // This is invoked when any ping request is
+    // received from the client
+    private void showToast(final String message) {
+        getActivity().runOnUiThread(new Runnable() {
+            public void run() {
+                Toast.makeText( getActivity().getApplication() , message , Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    // Function to be called when the user presses
+    // the button on the View
+    public void ping() {
+
+        // First get the views one by one
+        final TextView lblError = (TextView)rootView.findViewById(R.id.lblError);
+        // Get the IP Address entered by user
+        EditText ipAddress = (EditText)rootView.findViewById(R.id.etIpAddress);
+        // Code for handling errors
+        int errorCode = -1;
+        lblError.setText("");
+
+        try {
+            // STEP - 1:
+            // Check if IP Addresses entered by user is valid
+            if((errorCode = Validator.isIpAddressValid(ipAddress.getText().toString())) > 0) {
+                throw new Exception(getString(errorCode));
+            }
+
+            // STEP - 2:
+            // Try to contact a device in the background
+            SocketCommunicationTask socketCommunicationTask = new SocketCommunicationTask();
+            socketCommunicationTask.execute(ipAddress.getText().toString(),
+                    Integer.toString(getResources().getInteger(R.integer.client_port)),
+                    getString(R.string.msg_to_send),
+                    new Callback() {
+                        @Override
+                        public void execute(int errorCode, Object data) {
+                            try {
+                                if(errorCode > 0)
+                                    throw new Exception(data.toString());
+                            } catch(Exception ex) {
+                                // Display this exception message on our error label field
+                                lblError.setText(ex.getMessage());
+                            }
+                        }
+                    }
+            );
+        }
+        catch(Exception ex) {lblError.setText(ex.getMessage());
+            lblError.setText(ex.getMessage());
+        }
     }
 
 }

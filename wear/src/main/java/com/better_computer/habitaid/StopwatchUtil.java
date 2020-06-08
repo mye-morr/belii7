@@ -211,5 +211,4 @@ public class StopwatchUtil {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         return sp.getString(DATETIME_TODAY_STARTED, "");
     }
-
 }

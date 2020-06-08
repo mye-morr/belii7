@@ -313,8 +313,7 @@ public class ActivityButtons extends WearableActivity
 
                 if(bDebug) {
                     Toast.makeText(getApplicationContext(),
-                            "trans:rstrt -> effic\n" +
-                                    "start: timer/motiva",
+                            "trans:rstrt -> effic",
                             Toast.LENGTH_LONG).show();
                 }
 
@@ -408,44 +407,6 @@ public class ActivityButtons extends WearableActivity
 
                             break;
                         case "plng":
-                            sNewCycl = "optn";
-                            myApp.sNewCycl = sNewCycl;
-                            btnCycl.setText(sNewCycl);
-
-                            passedTime = StopwatchUtil.getTransPassedTime(contextOfApplication);
-                            passedSecs = passedTime / 1000;
-                            iMinPassed = (int) Math.round(passedSecs / 60.0);
-
-                            if(bDebug) {
-                                Toast.makeText(getApplicationContext(),
-                                        "trans:plng -> effic\n" +
-                                                "trans:plng -> event",
-                                        Toast.LENGTH_LONG).show();
-                            }
-
-                            db.doneEffic(
-                                    lCurSeshNum
-                                    ,dateFormat.format(cNow.getTime())
-                                    ,"trans"
-                                    ,iMinPassed
-                                    ,"plng"
-                                    , 0);
-
-                            db.doneEvent(
-                                    StopwatchUtil.getDateTransStarted(contextOfApplication),
-                                    "trans: plng",
-                                    iMinPassed,
-                                    0,
-                                    StopwatchUtil.getDateTimeTransStarted(contextOfApplication),
-                                    timeFormat.format(cNow.getTime()));
-
-                            StopwatchUtil.resetTransStartTime(contextOfApplication);
-                            StopwatchUtil.setDateTransStarted(
-                                    dateFormat.format(cNow.getTime()),
-                                    dateTimeFormat.format(cNow.getTime()));
-
-                            break;
-                        case "optn":
                             sNewCycl = "decd";
                             myApp.sNewCycl = sNewCycl;
                             btnCycl.setText(sNewCycl);
@@ -671,11 +632,6 @@ public class ActivityButtons extends WearableActivity
                     btnTrans.setText("trans");
                     btnWork.setText("work");
                     btnDoneCanc.setText("task");
-
-                    // turn off buzzer
-                    if(myApp.isOnTimer()) {
-                        myApp.toggleTimer();
-                    }
 
                     if(bNewTrans) {
 

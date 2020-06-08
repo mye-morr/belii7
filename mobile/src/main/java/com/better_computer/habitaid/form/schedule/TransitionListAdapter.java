@@ -33,10 +33,10 @@ public class TransitionListAdapter extends ArrayAdapter<Events> {
         Events sched = schedules.get(position);
         String sReceiver = "";
 
-        ((TextView) convertView.findViewById(R.id.schedule_item_summary)).setText(sched.getsDate()
-                        + "     " + sched.getiTimDur()
-                        + "     " + String.valueOf(sched.getiImp())
-                        + "     " + sched.getsName()
+        ((TextView) convertView.findViewById(R.id.schedule_item_summary)).setText(sched.getSDate()
+                        + "     " + sched.getITimDur()
+                        + "     " + String.valueOf(sched.getIImp())
+                        + "     " + sched.getSName()
                 );
 
         ((ImageView) convertView.findViewById(R.id.schedule_item_icon)).setImageResource(R.drawable.schedule_single_inactive);

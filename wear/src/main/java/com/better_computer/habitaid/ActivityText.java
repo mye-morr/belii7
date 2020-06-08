@@ -26,6 +26,14 @@ public class ActivityText extends WearableActivity {
     private String sActiveFaceText;
     private String sText;
 
+    public static final void startActivity(Context context, String sText) {
+        Intent intent = new Intent(context, ActivityText.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK |Intent.FLAG_ACTIVITY_CLEAR_TASK |Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        intent.putExtra("sText", sText);
+
+        context.startActivity(intent);
+    }
+
     public static final void startActivity(Context context) {
         Intent intent = new Intent(context, ActivityText.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK |Intent.FLAG_ACTIVITY_CLEAR_TASK |Intent.FLAG_ACTIVITY_NO_ANIMATION);
@@ -116,13 +124,19 @@ public class ActivityText extends WearableActivity {
             }
         });
 
+        Intent intent = getIntent();
+        if(intent.hasExtra("sText")) {
+            sText = intent.getStringExtra("sText");
+        }
+        else {
+            prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            sActiveFaceText = prefs.getString("sActiveFaceText", "2");
+            mActiveFaceText = Integer.valueOf(sActiveFaceText);
+
+            sText = prefs.getString("sText" + sActiveFaceText, "");
+        }
+
         tvText = (TextView) findViewById(R.id.tvText);
-
-        prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        sActiveFaceText = prefs.getString("sActiveFaceText", "2");
-        mActiveFaceText = Integer.valueOf(sActiveFaceText);
-
-        sText = prefs.getString("sText" + sActiveFaceText, "");
         tvText.setText(sText);
     }
 

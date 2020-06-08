@@ -16,7 +16,7 @@ public class NonSchedHelper extends AbstractHelper<NonSched>{
         this.columns.add("cat VARCHAR(50)");
         this.columns.add("subcat VARCHAR(50)");
         this.columns.add("wtcat INTEGER");
-        this.columns.add("subsub VARCHAR()");
+        this.columns.add("subsub VARCHAR(50)");
         this.columns.add("iprio INTEGER");
         this.columns.add("name VARCHAR(100)");
         this.columns.add("abbrev VARCHAR(20)");

@@ -9,6 +9,7 @@ import java.util.Map;
 public class Events extends AbstractModel{
 
     private String sDate = "";
+    private int iLongDatetime = 0;
     private String sName = "";
     private int iTimDur = 0;
     private int iPtsVal = 0;
@@ -20,6 +21,7 @@ public class Events extends AbstractModel{
         ContentValues contentValues = super.getContentValues();
 
         contentValues.put("sDate", sDate);
+        contentValues.put("iLongDatetime", iLongDatetime);
         contentValues.put("sName", sName);
         contentValues.put("iTimDur", iTimDur);
         contentValues.put("iPtsVal", iPtsVal);
@@ -35,6 +37,7 @@ public class Events extends AbstractModel{
         super.populateWith(data);
 
         sDate = fetchData(data, "sDate");
+        iLongDatetime = fetchDataInteger(data, "iLongDatetime");
         sName = fetchData(data, "sName");
         iTimDur = fetchDataInteger(data, "iTimDur");
         iPtsVal = fetchDataInteger(data, "iPtsVal");
@@ -43,59 +46,67 @@ public class Events extends AbstractModel{
         sTimEnd = fetchData(data, "sTimEnd");
     }
 
-    public String getsDate() {
+    public String getSDate() {
         return sDate;
     }
 
-    public void setsDate(String sDate) {
+    public void setSDate(String sDate) {
         this.sDate = sDate;
     }
 
-    public String getsName() {
+    public int getILongDatetime() {
+        return iLongDatetime; 
+    }
+
+    public void setILongDatetime(int iLongDatetime) {
+        this.iLongDatetime = iLongDatetime;
+    }
+
+    public String getSName() {
         return sName;
     }
 
-    public void setsName(String sName) {
+    public void setSName(String sName) {
         this.sName = sName;
     }
 
-    public int getiTimDur() {
+    public int getITimDur() {
         return iTimDur; 
     }
 
-    public void setiTimDur(int iTimDur) {
+    public void setITimDur(int iTimDur) {
         this.iTimDur = iTimDur;
     }
 
-    public int getiPtsVal() {
+    public int getIPtsVal() {
         return iPtsVal; 
     }
 
-    public void setiPtsVal(int iPtsVal) {
+    public void setIPtsVal(int iPtsVal) {
         this.iPtsVal = iPtsVal;
     }
 
-    public int getiImp() {
+    public int getIImp() {
         return iImp; 
     }
 
-    public void setiImp(int iImp) {
+    public void setIImp(int iImp) {
         this.iImp = iImp;
     }
 
-    public String getsDtTimStr() {
+    public String getSDtTimStr() {
         return sDtTimStr;
     }
 
-    public void setsDtTimStr(String sDtTimStr) {
+    public void setSDtTimStr(String sDtTimStr) {
         this.sDtTimStr = sDtTimStr;
     }
 
-    public String getsTimEnd() {
+    public String getSTimEnd() {
         return sTimEnd;
     }
 
-    public void setsTimEnd(String sTimEnd) {
+    public void setSTimEnd(String sTimEnd) {
         this.sTimEnd = sTimEnd;
     }
 

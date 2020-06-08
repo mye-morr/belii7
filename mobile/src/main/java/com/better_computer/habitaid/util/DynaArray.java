@@ -355,14 +355,22 @@ public class DynaArray {
         return getRandomElement();
     }
 
-    public String getRandomElementNew() {
+    public String getRandomElementNew(String sCategory) {
         if (lenInternalArray == 0) {
             // bingo: the re-seed?
             //return "";
 
             SQLiteDatabase database = DatabaseHelper.getInstance().getReadableDatabase();
 
-            String sql = "SELECT DISTINCT (cat || ';' || subcat || ';' || wtcat) as foo FROM core_tbl_nonsched WHERE _state='active' ORDER BY cat,subcat";
+            String sql;
+            if(sCategory.length() == 0) {
+                // ideally would like to exclude '0encourag' for NoCtrl time :-\
+                // have to reinvent logic for that :-
+                sql = "SELECT DISTINCT (cat || ';' || subcat || ';' || wtcat) as foo FROM core_tbl_nonsched WHERE _state='active' ORDER BY cat,subcat";
+            }
+            else {
+                sql = "SELECT DISTINCT (cat || ';' || subcat || ';' || wtcat) as foo FROM core_tbl_nonsched WHERE cat='" + sCategory + "' ORDER BY cat,subcat";
+            }
 
             List<String> listCatSubcat = new ArrayList<String>();
             try {
@@ -479,7 +487,7 @@ public class DynaArray {
             item.repeated = 0;
             totalWight += item.calWeight;
         }
-        return getRandomElementNew();
+        return getRandomElementNew("");
     }
 
     public ContentLog getRandomElementNewLog() {

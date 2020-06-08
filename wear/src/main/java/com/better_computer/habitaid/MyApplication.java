@@ -155,7 +155,6 @@ public class MyApplication extends Application {
                                     iVaria = 0;
                                 }
 
-								/*
 								sMsg = prefs.getString(NEXT_CARD_MSG, "NEXT_CARD_MSG");
 
 								int iBuf = sMsg.indexOf("-=");
@@ -166,11 +165,15 @@ public class MyApplication extends Application {
 								messageData.setText2(sVal);
 								ActivityCard.startActivity(getApplicationContext(), messageData);
 
+								String sCategory = "";
+								if(sNewCycl.equalsIgnoreCase("offt")) {
+								    sCategory = "0encourag";
+                                }
+
 								wearMessage = new WearMessage(getApplicationContext());
-								wearMessage.sendMessage("/fetch-next-card", "", "");
+								wearMessage.sendMessage("/fetch-next-card", "0encourag", "");
 								// wearmessage update swp from dynarray
 								// really this should be player: combined learning + habits
-								*/
 
                                 Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
                                 //-1 - don't repeat
@@ -213,7 +216,7 @@ public class MyApplication extends Application {
             StopwatchUtil.resetEngagedStartTime(this, "maint");
 
             WearMessage wearMessage = new WearMessage(getApplicationContext());
-            wearMessage.sendMessage("/fetch-next-card", "", "");
+            wearMessage.sendMessage("/fetch-next-card", "0encourag", "");
         }
         else {
             handlerIntervalTimer.removeCallbacks(r);

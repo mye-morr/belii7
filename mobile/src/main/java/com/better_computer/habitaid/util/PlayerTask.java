@@ -47,7 +47,7 @@ public class PlayerTask extends AsyncTask<Void, Void, Integer> {
 
         while(!isCancelled()) {
 
-            String sKeyVal = dynaArray.getRandomElementNew();
+            String sKeyVal = dynaArray.getRandomElementNew("");
 
             int iBuf = sKeyVal.indexOf("-=");
 

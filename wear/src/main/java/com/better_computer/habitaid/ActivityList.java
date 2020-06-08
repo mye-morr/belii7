@@ -164,6 +164,9 @@ public class ActivityList extends Activity{
                                 } else if (sListName.equalsIgnoreCase("comtas")) {
                                     // also resets the task start time
                                     ActivityInput.startActivity(getApplicationContext(), "comtas", sItem, sBufReply);
+                                } else if (sListName.equalsIgnoreCase("t0k")) {
+                                    // also resets the task start time
+                                    ActivityText.startActivity(getApplicationContext(), sBufReply);
                                 } else if (sListName.equalsIgnoreCase("l0st")) {
                                     // also resets the task start time
                                     ActivityInput.startActivity(getApplicationContext(), "l0st", sItem, sBufReply);

@@ -34,6 +34,7 @@ import java.util.List;
                 sql = "INSERT INTO [dbo].[core_tbl_events_merge] (" +
                                                                 "_id,_state,_frame" +
                                                                 ",sDate" +
+                                                                ",iLongDatetime" +
                                                                 ",sName" +
                                                                 ",iTimDur" +
                                                                 ",iPtsVal" +
@@ -50,6 +51,7 @@ import java.util.List;
                                                                 ",?" +
                                                                 ",?" +
                                                                 ",?" +
+                                                                ",?" +
                                 ")";
 
                 stmt = connection.prepareStatement(sql);
@@ -57,13 +59,14 @@ import java.util.List;
                     stmt.setString(1, events.get_id());
                     stmt.setString(2, events.get_state());
                     stmt.setString(3, events.get_frame());
-                    stmt.setString(4, events.getsDate());
-                    stmt.setString(5, events.getsName());
-                    stmt.setInt(6, events.getiTimDur());
-                    stmt.setInt(7, events.getiPtsVal());
-                    stmt.setInt(8, events.getiImp());
-                    stmt.setString(9, events.getsDtTimStr());
-                    stmt.setString(10, events.getsTimEnd());
+                    stmt.setString(4, events.getSDate());
+                    stmt.setInt(5, events.getILongDatetime());
+                    stmt.setString(6, events.getSName());
+                    stmt.setInt(7, events.getITimDur());
+                    stmt.setInt(8, events.getIPtsVal());
+                    stmt.setInt(9, events.getIImp());
+                    stmt.setString(10, events.getSDtTimStr());
+                    stmt.setString(11, events.getSTimEnd());
                     stmt.executeUpdate();
                 }
 
@@ -74,6 +77,7 @@ import java.util.List;
                                 " WHEN MATCHED THEN" +
                                 " UPDATE SET " +
                                 "[sDate]= COALESCE(d.[sDate], tgt.[sDate])" +
+                                ",[iLongDatetime]= COALESCE(d.[iLongDatetime], tgt.[iLongDatetime])" +
                                 ",[sName]= COALESCE(d.[sName], tgt.[sName])" +
                                 ",[iTimDur]= COALESCE(d.[iTimDur], tgt.[iTimDur])" +
                                 ",[iPtsVal]= COALESCE(d.[iPtsVal], tgt.[iPtsVal])" +
@@ -84,6 +88,7 @@ import java.util.List;
                                 " INSERT VALUES (" +
                                 "d.[_id],d.[_frame],d.[_state]" +
                                 ",d.[sDate]" +
+                                ",d.[iLongDatetime]" +
                                 ",d.[sName]" +
                                 ",d.[iTimDur]" +
                                 ",d.[iPtsVal]" +
