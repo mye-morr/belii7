@@ -36,10 +36,10 @@ public class SyncData {
     private static DateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 
     private Connection openConnection() {
-        String ipaddress = "184.168.194.77";
-        String db = "narfdaddy2";
-        String username = "narfdaddy2";
-        String password = "TreeDemo1";
+        String ipaddress = "10.16.21.122";
+        String db = "321_OneBase";
+        String username = "sa";
+        String password = "*Mogilev3";
 
         Connection connection = null;
         String ConnectionURL = null;
@@ -52,11 +52,14 @@ public class SyncData {
             connection = DriverManager.getConnection(ConnectionURL);
             return connection;
         } catch (SQLException se) {
-            Log.e("ERRO", se.getMessage());
+            Log.e("ERRO", se.getMessage() != null ? se.getMessage() : "SQL Exception with null message");
+            se.printStackTrace();
         } catch (ClassNotFoundException e) {
-            Log.e("ERRO", e.getMessage());
+            Log.e("ERRO", e.getMessage() != null ? e.getMessage() : "Class Not Found Exception");
+            e.printStackTrace();
         } catch (Exception e) {
-            Log.e("ERRO", e.getMessage());
+            Log.e("ERRO", e.getMessage() != null ? e.getMessage() : "Unknown Exception");
+            e.printStackTrace();
         }
 
         return null;

@@ -321,7 +321,13 @@ public class FragmentLibrary extends AbstractBaseFragment {
         //fix - android.database.CursorWindowAllocationException End
 
         ArrayAdapter<String> adapterCat = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, listCat);
+        
+        int index = listViewCategory.getFirstVisiblePosition();
+        View v = listViewCategory.getChildAt(0);
+        int top = (v == null) ? 0 : (v.getTop() - listViewCategory.getPaddingTop());
+
         listViewCategory.setAdapter(adapterCat);
+        listViewCategory.setSelectionFromTop(index, top);
 
         if (sCat.length() > 0) {
             String sql2 = "SELECT DISTINCT subcat FROM core_tbl_nonsched WHERE cat='" + sCat + "' ORDER BY subcat";
