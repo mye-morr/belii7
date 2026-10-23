@@ -21,7 +21,10 @@ import com.better_computer.habitaid.R;
 import com.better_computer.habitaid.data.DatabaseHelper;
 import com.better_computer.habitaid.data.core.NonSched;
 import com.better_computer.habitaid.data.core.NonSchedHelper;
+import com.better_computer.habitaid.data.core.Player;
+import com.better_computer.habitaid.data.core.PlayerHelper;
 import com.better_computer.habitaid.form.NewWizardDialog;
+import com.better_computer.habitaid.player.PlayerNamePickerFragment;
 import com.better_computer.habitaid.util.BaseItemTouchHelperCallback;
 import com.better_computer.habitaid.util.ItemTouchHelperAdapter;
 
@@ -116,23 +119,79 @@ public class NonSchedRecyclerViewAdapter extends RecyclerView.Adapter<NonSchedRe
                 List<String> optsList = new ArrayList<String>();
 
                 optsList.add("Edit");
+
                 optsList.add("Delete");
+
+                optsList.add("Add to Player");
+
                 final String[] options = optsList.toArray(new String[]{});
                 alertOptions.setAdapter(new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, android.R.id.text1, options), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-
                         if (options[i].equalsIgnoreCase("EDIT")) {
 
                             new NewWizardDialog(context, item).show();
 
-                        } else if (options[i].equalsIgnoreCase("DELETE")) {
+                        }
+                        else if (options[i].equalsIgnoreCase("DELETE")) {
                             Toast.makeText(context, "Schedule deleted.", Toast.LENGTH_SHORT).show();
 
                             nonSchedHelper.delete(item.get_id());
 
                             ((MainActivity) context).resetup();
                             dialogInterface.dismiss();
+
+                        }
+                        else if (options[i].equalsIgnoreCase("ADD TO PLAYER")) {
+                            PlayerNamePickerFragment fragment = PlayerNamePickerFragment.newInstance();
+                            fragment.setListener(new PlayerNamePickerFragment.Listener() {
+                                @Override
+                                public void onValueSet(String subcat, String name, int wt) {
+                                    PlayerHelper playerHelper = DatabaseHelper.getInstance().getHelper(PlayerHelper.class);
+                                    Player player = new Player();
+                                    player.copyFromNonSched(item);
+
+                                    if(subcat.isEmpty()) {
+                                        player.setSubcat(item.getCat());
+                                    }
+                                    else {
+                                        player.setSubcat(subcat);
+                                    }
+
+                                    if(name.isEmpty()) {
+                                        player.setName(item.getSubcat());
+                                    }
+                                    else {
+                                        player.setName(name);
+                                    }
+
+                                    player.setWt(wt);
+
+                                    if(item.getName().length() > 0) {
+                                        player.setContent(item.getName() + " -= " + item.getContent());
+                                    }
+
+                                    boolean result = playerHelper.createOrUpdateBySubcatAndName(player);
+                                    if (result) {
+                                        Toast.makeText(context, "Added to Player.", Toast.LENGTH_SHORT).show();
+                                    }
+                                    else {
+                                        Toast.makeText(context, "Adding to Player failed.", Toast.LENGTH_SHORT).show();
+                                    }
+
+//                                        String[] sxLines = item.getContent().split("\\n");
+//                                        for(int j=0; j<sxLines.length; j++) {
+//                                            ContentValues cv = new ContentValues();
+//                                            cv.put("_state", "active");
+//                                            cv.put("playerid", sNewId);
+//                                            cv.put("content", sxLines[j]);
+//                                            cv.put("weight", "0.1");
+//
+//                                            database.insert("core_tbl_content", null, cv);
+//                                        }
+                                }
+                            });
+                            fragment.show(((MainActivity)context).getSupportFragmentManager(), null);
                         }
                     }
                 });
@@ -148,7 +207,6 @@ public class NonSchedRecyclerViewAdapter extends RecyclerView.Adapter<NonSchedRe
 
                 return true;
                 }
-
             });
 
             itemView.setOnClickListener(new View.OnClickListener() {
@@ -171,102 +229,6 @@ public class NonSchedRecyclerViewAdapter extends RecyclerView.Adapter<NonSchedRe
                     notifyDataSetChanged();
 
                     /*
-                    AlertDialog.Builder alertOptions = new AlertDialog.Builder(context);
-                    List<String> optsList = new ArrayList<String>();
-
-                    optsList.add("Add to Player");
-
-                    optsList.add("Edit");
-
-                    if (item.get_state().equalsIgnoreCase("active")) {
-                        optsList.add("Deactivate");
-                    } else if (item.get_state().equalsIgnoreCase("inactive")) {
-                        optsList.add("Activate");
-                    }
-
-                    optsList.add("Delete");
-
-                    final String[] options = optsList.toArray(new String[]{});
-                    alertOptions.setAdapter(new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, android.R.id.text1, options), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            if (options[i].equalsIgnoreCase("EDIT")) {
-
-                                new NewWizardDialog(context, item).show();
-
-                            }
-                            else if (options[i].equalsIgnoreCase("ADD TO PLAYER")) {
-                                PlayerNamePickerFragment fragment = PlayerNamePickerFragment.newInstance();
-                                fragment.setListener(new PlayerNamePickerFragment.Listener() {
-                                    @Override
-                                    public void onValueSet(String subcat, String name, int wt) {
-                                        PlayerHelper playerHelper = DatabaseHelper.getInstance().getHelper(PlayerHelper.class);
-                                        Player player = new Player();
-                                        player.copyFromNonSched(item);
-
-                                        if(subcat.isEmpty()) {
-                                            player.setSubcat(item.getCat());
-                                        }
-                                        else {
-                                            player.setSubcat(subcat);
-                                        }
-
-                                        if(name.isEmpty()) {
-                                            player.setName(item.getSubcat());
-                                        }
-                                        else {
-                                            player.setName(name);
-                                        }
-
-                                        player.setWt(wt);
-
-                                        if(item.getName().length() > 0) {
-                                            player.setContent(item.getName() + " -= " + item.getContent());
-                                        }
-
-                                        boolean result = playerHelper.createOrUpdateBySubcatAndName(player);
-                                        if (result) {
-                                            Toast.makeText(context, "Added to Player.", Toast.LENGTH_SHORT).show();
-                                        }
-                                        else {
-                                            Toast.makeText(context, "Adding to Player failed.", Toast.LENGTH_SHORT).show();
-                                        }
-
-//                                        String[] sxLines = item.getContent().split("\\n");
-//                                        for(int j=0; j<sxLines.length; j++) {
-//                                            ContentValues cv = new ContentValues();
-//                                            cv.put("_state", "active");
-//                                            cv.put("playerid", sNewId);
-//                                            cv.put("content", sxLines[j]);
-//                                            cv.put("weight", "0.1");
-//
-//                                            database.insert("core_tbl_content", null, cv);
-//                                        }
-                                    }
-                                });
-                                fragment.show(((MainActivity)context).getSupportFragmentManager(), null);
-                            }
-                            else if (options[i].equalsIgnoreCase("DELETE")) {
-                                Toast.makeText(context, "Schedule deleted.", Toast.LENGTH_SHORT).show();
-
-                                nonSchedHelper.delete(item.get_id());
-
-                                ((MainActivity) context).resetup();
-                                dialogInterface.dismiss();
-
-                            }
-                        }
-                    });
-
-                    alertOptions.setCancelable(true);
-                    alertOptions.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.cancel();
-                        }
-                    });
-                    alertOptions.show();
-
                     */
                 }
             });

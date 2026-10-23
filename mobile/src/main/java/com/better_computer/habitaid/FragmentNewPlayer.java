@@ -184,6 +184,9 @@ public class FragmentNewPlayer extends AbstractBaseFragment {
                 if(content.get_state().equalsIgnoreCase("active")) {
                     optsList.add("Deactivate");
                 }
+                else {
+                    optsList.add("Activate");
+                }
 
                 optsList.add("Show Details");
 
@@ -194,6 +197,23 @@ public class FragmentNewPlayer extends AbstractBaseFragment {
                         if (options[i].equalsIgnoreCase("DEACTIVATE")) {
                             content.set_state("inactive");
                             myApp.dynaArray.removeArrayItem(content.getContent());
+
+                            contentHelper.update(content);
+
+                            refreshItemList(dialog);
+                            refreshContentList(dialog);
+                        } else if (options[i].equalsIgnoreCase("ACTIVATE")) {
+                            content.set_state("active");
+
+                            List<SearchEntry> keys = new ArrayList<SearchEntry>();
+                            keys.add(new SearchEntry(SearchEntry.Type.STRING, "_id", SearchEntry.Search.EQUAL, content.getPlayerid()));
+                            List<Player> players = (List<Player>) (List<?>) playerHelper.find(keys);
+                            if (!players.isEmpty()) {
+                                Player player = players.get(0);
+                                List<Content> singleList = new ArrayList<>();
+                                singleList.add(content);
+                                myApp.dynaArray.addContributingArray(singleList, player.get_id(), player.getWt(), player.getNumRepeats());
+                            }
 
                             contentHelper.update(content);
 
@@ -300,6 +320,24 @@ public class FragmentNewPlayer extends AbstractBaseFragment {
     public void refresh() {
         final View dialog = rootView;
         final ListView listViewSubcat = ((ListView) dialog.findViewById(R.id.schedule_category_list));
+        final MyApplication myApp = (MyApplication)getActivity().getApplication();
+
+        myApp.dynaArray.init();
+        List<SearchEntry> pKeys = new ArrayList<SearchEntry>();
+        pKeys.add(new SearchEntry(SearchEntry.Type.STRING, "_state", SearchEntry.Search.EQUAL, "active"));
+        List<Player> activePlayers = (List<Player>) (List<?>) playerHelper.find(pKeys);
+        for (Player player : activePlayers) {
+            List<Content> activeContents = contentHelper.findBy("playerid", player.get_id());
+            List<Content> activeOnly = new ArrayList<>();
+            for (Content c : activeContents) {
+                if (c.get_state().equalsIgnoreCase("active")) {
+                    activeOnly.add(c);
+                }
+            }
+            if (!activeOnly.isEmpty()) {
+                myApp.dynaArray.addContributingArray(activeOnly, player.get_id(), player.getWt(), player.getNumRepeats());
+            }
+        }
 
         SQLiteDatabase database = this.databaseHelper.getReadableDatabase();
 
