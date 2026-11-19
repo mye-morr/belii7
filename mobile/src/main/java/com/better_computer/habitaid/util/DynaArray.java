@@ -356,9 +356,9 @@ public class DynaArray {
     }
 
     public String getRandomElementNew(String sCategory) {
+        android.util.Log.d("DynaArray", "getRandomElementNew called with sCategory: '" + sCategory + "', lenInternalArray: " + lenInternalArray);
         if (lenInternalArray == 0) {
-            // bingo: the re-seed?
-            //return "";
+            android.util.Log.d("DynaArray", "Seeding internalArrayNew because lenInternalArray == 0 for category: '" + sCategory + "'");
 
             SQLiteDatabase database = DatabaseHelper.getInstance().getReadableDatabase();
 
@@ -403,7 +403,7 @@ public class DynaArray {
                 List<Pair> listWtContent = new ArrayList<Pair>();
 
                 sql = "SELECT (name || '-=' || content) as foo FROM core_tbl_nonsched "
-                        + "WHERE cat='" + sCat + "' AND subcat='" + sSubcat + "' AND _state='active'";
+                        + "WHERE cat='" + sCat + "' AND subcat='" + sSubcat + "'";
                 try {
                     Cursor cursor = database.rawQuery(sql, new String[0]);
                     if (cursor.moveToFirst()) {

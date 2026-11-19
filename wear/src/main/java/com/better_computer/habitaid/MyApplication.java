@@ -155,14 +155,18 @@ public class MyApplication extends Application {
                                     iVaria = 0;
                                 }
 
-								sMsg = prefs.getString(NEXT_CARD_MSG, "NEXT_CARD_MSG");
+								sMsg = prefs.getString(NEXT_CARD_MSG, "next -= card");
 
 								int iBuf = sMsg.indexOf("-=");
-								String sKey = sMsg.substring(0, iBuf).trim();
-								String sVal = sMsg.substring(iBuf + 2).trim();
-
-								messageData.setText1(sKey);
-								messageData.setText2(sVal);
+								if (iBuf > 0) {
+								    String sKey = sMsg.substring(0, iBuf).trim();
+								    String sVal = sMsg.substring(iBuf + 2).trim();
+								    messageData.setText1(sKey);
+								    messageData.setText2(sVal);
+								} else {
+								    messageData.setText1(sMsg);
+								    messageData.setText2("");
+								}
 								ActivityCard.startActivity(getApplicationContext(), messageData);
 
 								String sCategory = "";
@@ -217,6 +221,8 @@ public class MyApplication extends Application {
 
             WearMessage wearMessage = new WearMessage(getApplicationContext());
             wearMessage.sendMessage("/fetch-next-card", "0encourag", "");
+
+            android.widget.Toast.makeText(getApplicationContext(), "start", android.widget.Toast.LENGTH_SHORT).show();
         }
         else {
             handlerIntervalTimer.removeCallbacks(r);
@@ -227,6 +233,8 @@ public class MyApplication extends Application {
 
             wearMessage = new WearMessage(getApplicationContext());
             wearMessage.sendMessage("/reset-cards", "", "");
+
+            android.widget.Toast.makeText(getApplicationContext(), "stop", android.widget.Toast.LENGTH_SHORT).show();
         }
     }
 

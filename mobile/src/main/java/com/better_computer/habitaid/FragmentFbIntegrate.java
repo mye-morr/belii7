@@ -739,6 +739,10 @@ public class FragmentFbIntegrate extends AbstractBaseFragment {
 
                         // Show the toast
                         showToast(data.toString());
+
+                        // Forward the message to the watch
+                        WearMessage wearMessage = new WearMessage(getActivity());
+                        wearMessage.sendMessage("/start-activity", data.toString(), "");
                     } catch(Exception ex) {
                         // Display this exception message on our error label field
                         lblError.setText(ex.getMessage());

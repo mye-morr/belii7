@@ -21,16 +21,13 @@ public class WearMessage
     private static final String LOG_TAG = WearMessage.class.getSimpleName();
 
     public WearMessage(Context context) {
-
         mGoogleApiClient = new GoogleApiClient.Builder(context)
                 .addApi(Wearable.API)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
 
-        if (!mGoogleApiClient.isConnected()) {
-            mGoogleApiClient.connect();
-        }
+        mGoogleApiClient.connect();
     }
 
     public void sendSignal(String sPath) {
@@ -49,11 +46,31 @@ public class WearMessage
         sendData(sPath, libraryData.toJsonString());
     }
 
-    public void sendData(String sPath, String sJson) {
-        if (!mGoogleApiClient.isConnected()) {
-            mGoogleApiClient.connect();
-        }
+    public void sendData(final String sPath, final String sJson) {
+        if (mGoogleApiClient.isConnected()) {
+            executeSendData(sPath, sJson);
+        } else {
+            mGoogleApiClient.registerConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
+                @Override
+                public void onConnected(Bundle bundle) {
+                    executeSendData(sPath, sJson);
+                    try {
+                        mGoogleApiClient.unregisterConnectionCallbacks(this);
+                    } catch (Exception ignored) {
+                    }
+                }
 
+                @Override
+                public void onConnectionSuspended(int i) {
+                }
+            });
+            if (!mGoogleApiClient.isConnecting()) {
+                mGoogleApiClient.connect();
+            }
+        }
+    }
+
+    private void executeSendData(final String sPath, final String sJson) {
         final String fsPath = sPath;
         final String fsJson = sJson;
         Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).setResultCallback(
@@ -64,10 +81,6 @@ public class WearMessage
                             Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(),
                                     fsPath, fsJson.getBytes()).setResultCallback(
                                     getSendMessageResultCallback());
-
-                            // apparently another option instead of
-                            // .setResultCallback(...) is .await();
-
                         }
                     }
                 });
@@ -78,50 +91,24 @@ public class WearMessage
             @Override
             public void onResult(MessageApi.SendMessageResult sendMessageResult) {
                 if (!sendMessageResult.getStatus().isSuccess()) {
-                    Log.e(LOG_TAG, "Failed to connect to Google Api Client with status "
+                    Log.e(LOG_TAG, "Failed to send message with status "
                             + sendMessageResult.getStatus());
                 } else {
-                    Log.d(LOG_TAG, "Successful to connect to Google Api Client with status "
+                    Log.d(LOG_TAG, "Successfully sent message with status "
                             + sendMessageResult.getStatus());
                 }
             }
         };
     }
 
-    /* old send-message
-    public void sendMessage(final String path, final String message) {
-        new Thread( new Runnable() {
-            @Override
-            public void run() {
-                NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes( mGoogleApiClient ).await();
-                for(Node node : nodes.getNodes()) {
-                    MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(
-                            mGoogleApiClient, node.getId(), path, message.getBytes() ).await();
-                }
-
-                // this was commented out before, until
-                runOnUiThread( new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(getApplicationContext(), "m to phon" + message, Toast.LENGTH_SHORT).show();
-                    }
-                });
-                // .. here
-            }
-        }).start();
-    }
-    */
-
     @Override
     public void onConnected(Bundle bundle) {
         Log.d(LOG_TAG, "onConnected : " + bundle);
-//        Wearable.MessageApi.addListener(mGoogleApiClient, this);
     }
 
     @Override
     public void onConnectionSuspended(int i) {
         Log.d(LOG_TAG, "onConnectionSuspended : " + i);
-//        Wearable.MessageApi.removeListener(mGoogleApiClient, this);
     }
 
     @Override
@@ -129,11 +116,4 @@ public class WearMessage
         Log.e(LOG_TAG, "Failed to connect to Google Api Client with error code "
                 + connectionResult.getErrorCode());
     }
-
-    private GoogleApiClient getGoogleApiClient(Context context) {
-        return new GoogleApiClient.Builder(context)
-                .addApi(Wearable.API)
-                .build();
-    }
-
 }

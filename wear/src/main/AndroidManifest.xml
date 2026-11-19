@@ -61,7 +61,9 @@
             android:name=".ActivityCard"
             />
 
-        <service android:name=".WearableMessageListenerService">
+        <service
+            android:name=".WearableMessageListenerService"
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.google.android.gms.wearable.BIND_LISTENER" />
             </intent-filter>

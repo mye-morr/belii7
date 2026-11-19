@@ -86,7 +86,9 @@
 
         <service android:name=".service.PlayerService" />
         <service android:name=".service.PlayerServiceStatic" />
-        <service android:name=".scheduler.HandheldListenerService">
+        <service
+            android:name=".scheduler.HandheldListenerService"
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.google.android.gms.wearable.BIND_LISTENER" />
             </intent-filter>
